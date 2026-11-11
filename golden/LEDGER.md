@@ -1,6 +1,6 @@
 # Golden set ledger
 
-Updated 2026-11-10 16:37. Score = auto (0-40) + judge (0-60).
+Updated 2026-11-10 16:43. Score = auto (0-40) + judge (0-60).
 
 | iteration | tasks done | mean score | notes |
 |---|---|---|---|
@@ -8,7 +8,7 @@ Updated 2026-11-10 16:37. Score = auto (0-40) + judge (0-60).
 | iter_02 | 6/6 | 88.7 | fixes from iter_01 partials: networkx, visual merge, scope rule; harness outage-resume |
 | iter_03 | 6/6 | 89.8 | playbook v3: full-demo evidence (DEMO_SECONDS), showcase videos, settling at home pose, camera unblocking, salience hint |
 | iter_04 | 6/6 | 91.0 | playbook v4: world.py dynamics hook, fixed thresholds, REPORT.md, simplest-design defaults, env.py reaches goal, workspa |
-| iter_05 | 5/6 | 90.8 | playbook v5 + golden v2 (user states success criteria): box-fit scaling, world.py, task-object occlusion check, FPV fix, |
+| iter_05 | 6/6 | 90.9 | playbook v5 + golden v2 (user states success criteria): box-fit scaling, world.py, task-object occlusion check, FPV fix, |
 
 ## iter_01
 
@@ -60,7 +60,7 @@ Updated 2026-11-10 16:37. Score = auto (0-40) + judge (0-60).
 |---|---|---|---|---|---|---|---|---|
 | harbor_boat | 90.0 | 40.0 | 50.0 | 2 | PASS | 51.7 | 10.02 | Boat mass changed from the briefed ~900 kg to 2000 kg, but the final reply's 'Changes from the plan' list leav |
 | isaac_synthetic | 91.5 | 40.0 | 51.5 | 2 | PASS | 50.1 | 12.08 | The ceiling is hidden in the MuJoCo renders, so every aisle view has a flat grey/black gradient band across th |
-| lab_bench | None | None | None | None | None | 0.0 | None |  |
+| lab_bench | 91.5 | 40.0 | 51.5 | 2 | PASS | 25.2 | 6.6 | The auto_iso_back camera shows only an empty wall/floor corner, so this view is useless for review. |
 | mars_rover | 90.5 | 40.0 | 50.5 | 2 | PASS | 29.6 | 7.38 | The goal-distance metric changed between the brief and the build. The brief promised the rover would end 'with |
 | quadruped_trail | 90.5 | 40.0 | 50.5 | 2 | PASS | 21.1 | 5.77 | Stair climbability is shown only by geometry measurements and by placing the robot on the landing. The robot n |
 | sd_intersection | 91.5 | 40.0 | 51.5 | 2 | PASS | 26.2 | 6.41 | The tracking/follow camera used in the showcase is blocked in some frames. At about 4.7 s a large green slab ( |

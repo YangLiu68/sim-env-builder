@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-10 16:37",
+ "updated": "2026-11-10 16:43",
  "iterations": [
   {
    "iter": "iter_01",
@@ -1421,19 +1421,70 @@
     {
      "task": "lab_bench",
      "category": "fallback-stress",
-     "phase": "shot2",
-     "total": null,
-     "auto": null,
-     "judge": null,
-     "shots": null,
-     "cost": null,
-     "minutes": 0.0,
-     "smoke": null,
-     "scores": null,
-     "missing": null,
-     "problems": [],
-     "summary": null,
-     "points": null
+     "phase": "done",
+     "total": 91.5,
+     "auto": 40.0,
+     "judge": 51.5,
+     "shots": 2,
+     "cost": 6.6,
+     "minutes": 25.2,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 8,
+      "physics": 9
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The auto_iso_back camera shows only an empty wall/floor corner, so this view is useless for review.",
+       "evidence": "regrade/contact_sheet.png auto_iso_back tile: no bench, robot or props visible",
+       "fix": "In the render tool, detect auto views where the scene bbox projects to <5% of pixels or a wall blocks the view (ray-cast camera->scene centre), and move the camera inside the room or drop it."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The tubes and gripper are tiny in the filmstrip, so you cannot see the grasp and carry. The demo is only readable from the task checks.",
+       "evidence": "regrade/filmstrip.png: at t=6.86-8.57s the tube in the gripper over the green rack is a few pixels",
+       "fix": "Playbook: for small-object manipulation, add a filmstrip row from a close task camera framed on the source and destination racks (bbox of target object path + 5 cm)."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The bench collision overlay seems to cover only part of the worktop: the left area near the centrifuge does not show the collider tint. The props there rest correctly, so this may be a rendering artefact, but it was not explained.",
+       "evidence": "regrade/collision_sheet.png collision_overview: left part of worktop stays blue while the rest is pink",
+       "fix": "Collision-sheet tool should list each static collider's footprint against the visual mesh's footprint and flag any mismatch over 5%."
+      },
+      {
+       "severity": "low",
+       "area": "assets",
+       "description": "The bench mesh is stretched 18% vertically (z 1.182) to reach the 0.90 m worktop height. The stretch is within the limit and is disclosed.",
+       "evidence": "assets/ASSETS.md bench row, grade.json rebuild log per_axis_stretch [0.978,0.865,1.182]",
+       "fix": "Prefer stretching only the leg/cabinet region (split mesh at worktop) or pick a bench whose native proportions are closer; warn when any axis exceeds 15%."
+      },
+      {
+       "severity": "low",
+       "area": "tooling",
+       "description": "The final reply says '29 checks passed', but the examiner records 20 pass plus 6 task checks. The count is close but cannot be traced to a source.",
+       "evidence": "shot2_reply.md line 1 vs grade.json latest_examiner pass=20",
+       "fix": "Report counts verbatim from smoke_report.json (examiner and task checks listed separately) instead of a hand-summed number."
+      }
+     ],
+     "summary": "This is a strong, honest MuJoCo build. It confirmed with the user first, mixes Poly Pizza models (bench, microscope) with recognisable procedural lab equipment, and runs a physically real pick-and-place that strict, meaningful checks verify, all reproduced by the regrade. The remaining gaps are cosmetic: one blank auto camera, a filmstrip that is too zoomed out to show the grasp, a slightly unclear bench collider, and a check count that doesn't match the report.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
     },
     {
      "task": "mars_rover",
@@ -1620,8 +1671,8 @@
     }
    ],
    "void": false,
-   "mean_total": 90.8,
-   "n_done": 5,
+   "mean_total": 90.9,
+   "n_done": 6,
    "n": 6
   }
  ]

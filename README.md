@@ -1,4 +1,33 @@
-# onellmpj: sim-env-builder
+# sim-env-builder
+
+**Describe a robot simulation in a sentence. A fresh Claude agent picks MuJoCo or Isaac Sim, confirms the
+plan with you, pulls 3D models from [Poly Pizza](https://poly.pizza) (or builds them in code), builds the
+environment, and proves it works with rendering, visual-review and physics smoke tests.**
+
+Every scene below was generated end to end by a fresh agent from a short request in the golden set,
+then re-built, re-tested and scored by an independent judge. None of them is hand-made.
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="docs/media/isaac_synthetic.gif" width="100%" alt="isaac_synthetic"><br><b>Retail aisle for synthetic data (Isaac Sim export + MuJoCo)</b><br><sub>score 91.5/100 · <a href="docs/media/isaac_synthetic.mp4">full video</a></sub></td>
+<td width="50%" valign="top"><img src="docs/media/sd_intersection.gif" width="100%" alt="sd_intersection"><br><b>Self-driving: city intersection with lights and pedestrians</b><br><sub>score 91.5/100 · <a href="docs/media/sd_intersection.mp4">full video</a></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/media/mars_rover.gif" width="100%" alt="mars_rover"><br><b>Mars rover on cratered terrain, 3.71 m/s² gravity</b><br><sub>score 90.5/100 · <a href="docs/media/mars_rover.mp4">full video</a></sub></td>
+<td width="50%" valign="top"><img src="docs/media/factory_sorting.gif" width="100%" alt="factory_sorting"><br><b>Factory cell: conveyor + arm sorting by colour</b><br><sub>score 93.0/100 · <a href="docs/media/factory_sorting.mp4">full video</a></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/media/warehouse_amr.gif" width="100%" alt="warehouse_amr"><br><b>Warehouse AMR driving an aisle to its goal</b><br><sub>score 94.0/100 · <a href="docs/media/warehouse_amr.mp4">full video</a></sub></td>
+<td width="50%" valign="top"><img src="docs/media/home_fetch.gif" width="100%" alt="home_fetch"><br><b>Home robot fetching a cup in a living room</b><br><sub>score 92.5/100 · <a href="docs/media/home_fetch.mp4">full video</a></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/media/orchard_drone.gif" width="100%" alt="orchard_drone"><br><b>Orchard inspection rover between apple-tree rows</b><br><sub>score 94.0/100 · <a href="docs/media/orchard_drone.mp4">full video</a></sub></td>
+<td width="50%" valign="top"><img src="docs/media/robot_soccer.gif" width="100%" alt="robot_soccer"><br><b>Multi-agent robot soccer, 2 vs 2</b><br><sub>score 90.5/100 · <a href="docs/media/robot_soccer.mp4">full video</a></sub></td>
+</tr>
+</table>
+
+<p align="center"><img src="docs/media/all_tasks.jpg" width="100%" alt="all golden tasks"><br>
+<sub>All 16 golden-set tasks, with their best scores (automated checks 40 + independent judge 60). 3D model credits: <a href="docs/media/CREDITS.md">docs/media/CREDITS.md</a>.</sub></p>
 
 A Claude Code **skill + MCP server** that builds 3D simulated environments (MuJoCo or NVIDIA Isaac Sim)
 from a description, with a **golden set** and a self-improvement loop that tests it with fresh agents,
@@ -42,10 +71,10 @@ tests/                           simkit regression tests, MCP stdio check, UI sc
 
 ## Results so far
 
-Golden-set mean score per iteration (automated 40 + independent judge 60): iter_02: 88.7, iter_03: 89.8, iter_04: 91.0, iter_05: 90.8.
+Golden-set mean score per iteration (automated 40 + independent judge 60): iter_02: 88.7, iter_03: 89.8, iter_04: 91.0, iter_05: 90.9.
 Every scored run confirmed its plan before building; nearly all finished in 2 user messages.
 
-| task | category | latest score | iteration |
+| task | category | best score | iteration |
 |---|---|---|---|
 | warehouse_amr | logistics | 94.0 | iter_02 |
 | orchard_drone | agriculture | 94.0 | iter_04 |
@@ -55,13 +84,13 @@ Every scored run confirmed its plan before building; nearly all finished in 2 us
 | arm_kitchen | robot-arm | 91.5 | iter_04 |
 | isaac_synthetic | isaac-preferred | 91.5 | iter_05 |
 | sd_intersection | self-driving | 91.5 | iter_05 |
+| lab_bench | fallback-stress | 91.5 | iter_05 |
 | cartpole_minimal | classic-control | 91.0 | iter_04 |
 | quadruped_trail | legged | 90.5 | iter_05 |
 | humanoid_gym | humanoid | 90.5 | iter_03 |
 | mars_rover | space | 90.5 | iter_05 |
 | robot_soccer | multi-agent | 90.5 | iter_03 |
 | harbor_boat | marine | 90.0 | iter_05 |
-| lab_bench | fallback-stress | 89.5 | iter_03 |
 | cloth_table | deformable | 83.4 | iter_04 |
 
 Full history: `golden/LEDGER.md`; what each round changed: `golden/CHANGELOG.md`.
