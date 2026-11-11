@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Launch the Poly Pizza MCP server with a Python that has `mcp`, `trimesh` and `Pillow`.
+# Order: $POLYPIZZA_PYTHON, the repo .venv next to this plugin, the shared sim-env venv, then uv.
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}"
+for py in "${POLYPIZZA_PYTHON:-}" "$here/../.venv/bin/python" "${SIMENV_HOME:-$HOME/.cache/sim-env-builder}/venv/bin/python"; do
+  if [ -n "$py" ] && [ -x "$py" ] && "$py" -c "import mcp.server.mcpserver, trimesh, PIL" 2>/dev/null; then
+    exec "$py" -m polypizza_mcp
+  fi
+done
+exec uv run --quiet --with "mcp>=2" --with trimesh --with pillow --with numpy python -m polypizza_mcp

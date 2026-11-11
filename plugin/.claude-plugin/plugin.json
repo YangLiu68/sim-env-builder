@@ -1,0 +1,6 @@
+{
+  "name": "sim-env-builder",
+  "version": "0.1.0",
+  "description": "Build and smoke-test 3D simulated environments (MuJoCo or Isaac Sim) from a description, with Poly Pizza models and procedural fallbacks.",
+  "author": { "name": "onellmpj" }
+}

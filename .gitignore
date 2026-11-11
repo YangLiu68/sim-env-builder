@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+MUJOCO_LOG.TXT
+
+# Frontend
+dashboard/web/node_modules/
+dashboard/web/dist/
+
+# Generated / machine-specific
+harness/.generated/
+golden/runs/
+dashboard/runs/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

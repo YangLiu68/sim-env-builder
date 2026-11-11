@@ -1,0 +1,345 @@
+{
+ "version": 2,
+ "notes": "Golden set for the sim-env-builder skill. 'prompt' is the user's first message (shot 1). 'user_reply' is what the simulated user answers to the confirmation brief (shot 2); it states preferences broadly so it answers whatever the agent asks. 'must_have' and 'checks' are for the judge. tier core = run every iteration; extended = rotated in. v2 (2026-11-10): the simulated user now states the 'checks' success criteria in user_reply, so the judge no longer grades agents on criteria they could not see.",
+ "tasks": [
+  {
+   "id": "sd_intersection",
+   "category": "self-driving",
+   "tier": "core",
+   "prompt": "I need a simulation environment for self-driving research: a city four-way intersection with traffic lights, a few buildings and trees around it, parked cars along the kerb, and an ego car I can control with steering and throttle. Pedestrians would be nice too.",
+   "user_reply": "Looks good. MuJoCo is fine. Keep it to one intersection, two lanes each way. Pedestrians can be simple, walking along the sidewalk or a crosswalk on a fixed path. The ego car should drive through the intersection in the demo. Use your defaults for anything else. Go ahead and build it. Please make sure these hold, with a check for each: ego reaches target speed; ego stays on road; no penetration between cars and road.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "4-way intersection with 2 lanes each way and lane markings",
+    "traffic lights",
+    "buildings",
+    "trees",
+    "parked cars at the kerb",
+    "ego car with steering + throttle actuators",
+    "pedestrians (moving)",
+    "ego car demo drives through the intersection",
+    "driver or chase camera"
+   ],
+   "checks": [
+    "ego reaches target speed",
+    "ego stays on road",
+    "no penetration between cars and road"
+   ]
+  },
+  {
+   "id": "arm_kitchen",
+   "category": "robot-arm",
+   "tier": "core",
+   "prompt": "Build a tabletop manipulation environment: a robot arm with a gripper mounted on a kitchen counter, with a mug, a couple of pieces of fruit and a plate to pick and place. I want a wrist camera and an overhead camera.",
+   "user_reply": "Yes, go with MuJoCo and a procedural 6-DoF arm with a parallel gripper. The demo should pick up the mug or a fruit and place it on the plate. Position control of joints is fine. Use defaults for the rest and build it. Please make sure these hold, with a check for each: object lifted > 5 cm by the gripper; objects rest on the counter at start.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "arm with parallel gripper on a counter",
+    "mug",
+    "at least 2 fruits",
+    "plate",
+    "wrist camera",
+    "overhead camera",
+    "pick-and-place demo that actually lifts an object"
+   ],
+   "checks": [
+    "object lifted > 5 cm by the gripper",
+    "objects rest on the counter at start"
+   ]
+  },
+  {
+   "id": "drone_gates",
+   "category": "aerial",
+   "tier": "core",
+   "prompt": "Make me a drone racing environment in a park: a quadcopter, a course of 5 or 6 gates at different heights, trees and some obstacles around. It should be usable for RL.",
+   "user_reply": "Great, MuJoCo please. Thrust-per-rotor control is good. Include an onboard FPV camera. The demo should fly through the gates in order. Defaults for everything else; build it. Please make sure these hold, with a check for each: hover holds altitude; passes through gate openings; no collision with gates in the demo.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "quadcopter with 4 rotor thrust actuators",
+    "5-6 gates at varying heights",
+    "trees",
+    "obstacles",
+    "FPV camera",
+    "Gym-style env",
+    "demo flies through the gates in order"
+   ],
+   "checks": [
+    "hover holds altitude",
+    "passes through gate openings",
+    "no collision with gates in the demo"
+   ]
+  },
+  {
+   "id": "quadruped_trail",
+   "category": "legged",
+   "tier": "core",
+   "prompt": "I want an environment for training a quadruped robot to walk outdoors: rough hilly terrain, some rocks, a short flight of stairs, and a few trees. The robot should start standing.",
+   "user_reply": "MuJoCo is right. A procedural 12-DoF quadruped is fine. The demo only needs to show it standing stably and maybe stepping in place; no need for a real walking policy. Defaults for the rest, go ahead. Please make sure these hold, with a check for each: stands 3 s with stable trunk height; feet in contact with terrain; stairs climbable dimensions (rise ~0.15-0.2 m).",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "12-DoF quadruped standing at start",
+    "rough/hilly heightfield terrain",
+    "rocks",
+    "stairs",
+    "trees",
+    "robot spawns on the terrain surface (not inside/above)"
+   ],
+   "checks": [
+    "stands 3 s with stable trunk height",
+    "feet in contact with terrain",
+    "stairs climbable dimensions (rise ~0.15-0.2 m)"
+   ]
+  },
+  {
+   "id": "warehouse_amr",
+   "category": "logistics",
+   "tier": "core",
+   "prompt": "Create a warehouse simulation with pallet racks, pallets with boxes, a forklift parked somewhere, and an autonomous mobile robot that drives between aisles.",
+   "user_reply": "Sounds right. MuJoCo. Two or three aisles is enough. The mobile robot can be a differential-drive AMR with a lidar-like sensor or a camera; the demo should drive it down an aisle and stop at a goal. The forklift can be a static prop. Build it with your defaults. Please make sure these hold, with a check for each: AMR reaches the goal; AMR does not collide with racks.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "pallet racks forming 2-3 aisles",
+    "pallets with boxes",
+    "forklift (static ok)",
+    "differential-drive AMR",
+    "AMR sensor (rangefinders or camera)",
+    "demo drives down an aisle to a goal"
+   ],
+   "checks": [
+    "AMR reaches the goal",
+    "AMR does not collide with racks"
+   ]
+  },
+  {
+   "id": "home_fetch",
+   "category": "mobile-manipulation",
+   "tier": "extended",
+   "prompt": "Build a living room environment for a home assistant robot: sofa, coffee table, TV, bookshelf, a rug and some plants. The robot is a mobile base with an arm and should be able to fetch a cup from the coffee table.",
+   "user_reply": "Yes. MuJoCo. A wheeled base with a small arm on top is perfect. Demo: drive to the coffee table and reach the cup (grasping is a bonus). Defaults otherwise. Go. Please make sure these hold, with a check for each: robot reaches near the table; end effector within 5 cm of the cup.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "sofa",
+    "coffee table",
+    "TV",
+    "bookshelf",
+    "rug",
+    "plants",
+    "cup on the coffee table",
+    "mobile base with arm",
+    "demo drives to the table and reaches the cup",
+    "room walls"
+   ],
+   "checks": [
+    "robot reaches near the table",
+    "end effector within 5 cm of the cup"
+   ]
+  },
+  {
+   "id": "mars_rover",
+   "category": "space",
+   "tier": "extended",
+   "prompt": "I need a Mars exploration environment: a rover driving over cratered rocky terrain with Mars gravity, a lander module in the distance, and some boulders.",
+   "user_reply": "MuJoCo, yes. A simple 4- or 6-wheel rover with skid or Ackermann steering is fine; give it a mast camera. Demo: drive the rover across the terrain toward the lander. Use reddish terrain. Defaults otherwise; build it. Please make sure these hold, with a check for each: gravity probe matches 3.71; rover stays upright; rover makes progress.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "Mars gravity 3.71",
+    "cratered terrain (heightfield)",
+    "rover with wheels + steering",
+    "mast camera",
+    "lander module",
+    "boulders",
+    "demo drives toward the lander",
+    "reddish colours"
+   ],
+   "checks": [
+    "gravity probe matches 3.71",
+    "rover stays upright",
+    "rover makes progress"
+   ]
+  },
+  {
+   "id": "harbor_boat",
+   "category": "marine",
+   "tier": "extended",
+   "prompt": "Make a harbor environment with a small boat on the water, a wooden dock, a few buoys and a lighthouse. The boat needs to float and be controllable with a thruster and rudder.",
+   "user_reply": "MuJoCo please. Approximate buoyancy is fine. Demo: the boat motors out around a buoy. Defaults otherwise, build it. Please make sure these hold, with a check for each: boat floats at a stable waterline; boat does not sink or fly; thrust moves the boat.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "water surface",
+    "boat that floats (buoyancy)",
+    "thruster + rudder control",
+    "wooden dock",
+    "buoys",
+    "lighthouse",
+    "demo goes around a buoy"
+   ],
+   "checks": [
+    "boat floats at a stable waterline",
+    "boat does not sink or fly",
+    "thrust moves the boat"
+   ]
+  },
+  {
+   "id": "orchard_drone",
+   "category": "agriculture",
+   "tier": "extended",
+   "prompt": "Agricultural scene: an apple orchard with rows of trees, a tractor parked at the end of a row, a barn, and a small ground robot that drives between the tree rows for inspection.",
+   "user_reply": "Yes, MuJoCo. Four rows of trees is enough. The ground robot can be a small wheeled rover with a camera; demo drives down one row. Defaults otherwise. Go ahead. Please make sure these hold, with a check for each: robot stays between rows; robot reaches the end of the row.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "rows of fruit trees",
+    "tractor",
+    "barn",
+    "wheeled inspection robot with camera",
+    "demo drives down a row"
+   ],
+   "checks": [
+    "robot stays between rows",
+    "robot reaches the end of the row"
+   ]
+  },
+  {
+   "id": "robot_soccer",
+   "category": "multi-agent",
+   "tier": "extended",
+   "prompt": "Create a robot soccer environment: a small field with goals, a ball, and two teams of two wheeled robots each, for multi-agent RL.",
+   "user_reply": "MuJoCo is good. Differential-drive robots are fine. Demo: one robot pushes the ball toward a goal. The env should expose all four robots' actions and observations. Defaults otherwise; build it. Please make sure these hold, with a check for each: ball rolls with realistic friction; robot can push the ball.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "field with markings",
+    "two goals",
+    "ball (rolls)",
+    "4 wheeled robots in two team colours",
+    "multi-agent action/obs in env.py",
+    "demo pushes the ball toward a goal"
+   ],
+   "checks": [
+    "ball rolls with realistic friction",
+    "robot can push the ball"
+   ]
+  },
+  {
+   "id": "isaac_synthetic",
+   "category": "isaac-preferred",
+   "tier": "core",
+   "prompt": "We want photorealistic synthetic camera data of a retail store aisle (shelves with products, shopping carts, price signs) for training a detector, and we will run thousands of randomized variations on our RTX 4090 workstation with Isaac. Can you build the environment?",
+   "user_reply": "Our RTX machine is separate from this laptop. Please build and test it locally in MuJoCo and also export the Isaac Sim USD stage plus a script I can run there. Add a camera that looks down the aisle. Defaults for the rest. Go ahead. Please make sure these hold, with a check for each: USD validation passes; MuJoCo smoke passes.",
+   "expected_backend": "isaac (via MuJoCo build + USD export, since no RTX GPU here)",
+   "must_have": [
+    "recognises Isaac fits but cannot run here and says so",
+    "store aisle with shelves",
+    "products on shelves",
+    "shopping carts",
+    "price signs",
+    "aisle camera",
+    "USD export validated",
+    "Isaac smoke script + instructions",
+    "honest statement that Isaac runtime was not executed"
+   ],
+   "checks": [
+    "USD validation passes",
+    "MuJoCo smoke passes"
+   ]
+  },
+  {
+   "id": "cartpole_minimal",
+   "category": "classic-control",
+   "tier": "extended",
+   "prompt": "Just a classic cart-pole environment please, nothing fancy, for quick RL experiments.",
+   "user_reply": "Yes, MuJoCo, standard dimensions, force-controlled cart, Gym API. Keep it minimal. Build it. Please make sure these hold, with a check for each: pole falls without control; a simple LQR/PD controller balances it.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "cart on a rail (slide joint with limits)",
+    "pole on a hinge",
+    "force actuator on the cart",
+    "Gym-style env with reward for keeping the pole up",
+    "no unnecessary scenery"
+   ],
+   "checks": [
+    "pole falls without control",
+    "a simple LQR/PD controller balances it"
+   ]
+  },
+  {
+   "id": "factory_sorting",
+   "category": "industrial",
+   "tier": "extended",
+   "prompt": "Industrial cell: a conveyor belt carrying boxes of different colours, a robot arm next to it that sorts them into bins, safety fences around the cell.",
+   "user_reply": "MuJoCo. The conveyor can move boxes by setting their velocity, no need for a real belt. Demo: the arm picks at least one box off the conveyor and drops it in the matching bin. Defaults otherwise, build it. Please make sure these hold, with a check for each: boxes travel along the conveyor; a box ends up inside a bin.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "conveyor that moves boxes",
+    "boxes in different colours",
+    "robot arm with gripper",
+    "colour-coded bins",
+    "safety fences",
+    "demo sorts at least one box into a bin"
+   ],
+   "checks": [
+    "boxes travel along the conveyor",
+    "a box ends up inside a bin"
+   ]
+  },
+  {
+   "id": "lab_bench",
+   "category": "fallback-stress",
+   "tier": "extended",
+   "prompt": "A biology lab bench environment for a lab automation robot: a centrifuge, a pipette rack, test tube racks with tubes, a microscope, and a small robot arm that moves a test tube from one rack to another.",
+   "user_reply": "MuJoCo, procedural arm is fine. If some lab equipment is not available as a model, generate it. Demo: move one test tube between racks. Defaults otherwise; go. Please make sure these hold, with a check for each: tube is grasped and moved; tubes stand upright in racks at start.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "lab bench",
+    "centrifuge",
+    "pipette rack",
+    "test tube racks with tubes",
+    "microscope",
+    "small arm with gripper",
+    "procedural fallbacks for missing equipment that still look recognisable",
+    "demo moves a test tube"
+   ],
+   "checks": [
+    "tube is grasped and moved",
+    "tubes stand upright in racks at start"
+   ]
+  },
+  {
+   "id": "cloth_table",
+   "category": "deformable",
+   "tier": "extended",
+   "prompt": "I need a deformable-object environment: a square cloth lying on a table that a robot arm could fold, for research on cloth manipulation.",
+   "user_reply": "MuJoCo with its flex/cloth support. Demo: the arm grabs one corner of the cloth and lifts it (folding is a bonus). Defaults otherwise, build it. Please make sure these hold, with a check for each: cloth is stable for 3 s; cloth corner rises when lifted.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "deformable cloth (flexcomp or composite)",
+    "table",
+    "arm with gripper",
+    "cloth rests on the table without exploding",
+    "demo lifts a corner"
+   ],
+   "checks": [
+    "cloth is stable for 3 s",
+    "cloth corner rises when lifted"
+   ]
+  },
+  {
+   "id": "humanoid_gym",
+   "category": "humanoid",
+   "tier": "extended",
+   "prompt": "Set up an environment for training a humanoid robot to walk: a flat floor with some low obstacles and a ramp, inside a simple gym hall.",
+   "user_reply": "MuJoCo. A procedural humanoid in the style of the classic MuJoCo humanoid (torque or position actuators) is fine; no real robot download. The demo just needs to show it standing with a PD hold or collapsing physically plausibly. Defaults; go. Please make sure these hold, with a check for each: joint limits respected; no self-penetration explosion.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "humanoid with ~17-21 actuated joints",
+    "flat floor",
+    "low obstacles",
+    "ramp",
+    "gym hall walls",
+    "demo shows standing hold or plausible fall"
+   ],
+   "checks": [
+    "joint limits respected",
+    "no self-penetration explosion"
+   ]
+  }
+ ]
+}

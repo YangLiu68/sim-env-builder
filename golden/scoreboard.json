@@ -1,0 +1,1628 @@
+{
+ "updated": "2026-11-10 16:37",
+ "iterations": [
+  {
+   "iter": "iter_01",
+   "notes": "VOID: network/DNS outage (ENOTFOUND) killed every agent mid-build at ~01:25; scores not meaningful",
+   "rows": [
+    {
+     "task": "arm_kitchen",
+     "category": "robot-arm",
+     "phase": "done",
+     "total": 0,
+     "auto": 0.0,
+     "judge": null,
+     "shots": 3,
+     "cost": 5.89,
+     "minutes": 31.9,
+     "smoke": null,
+     "scores": null,
+     "missing": null,
+     "problems": [],
+     "summary": null,
+     "points": null
+    },
+    {
+     "task": "drone_gates",
+     "category": "aerial",
+     "phase": "done",
+     "total": 0,
+     "auto": 0.0,
+     "judge": null,
+     "shots": 3,
+     "cost": 7.33,
+     "minutes": 33.9,
+     "smoke": null,
+     "scores": null,
+     "missing": null,
+     "problems": [],
+     "summary": null,
+     "points": null
+    },
+    {
+     "task": "isaac_synthetic",
+     "category": "isaac-preferred",
+     "phase": "done",
+     "total": 0,
+     "auto": 0.0,
+     "judge": null,
+     "shots": 3,
+     "cost": 0.0,
+     "minutes": 24.1,
+     "smoke": null,
+     "scores": null,
+     "missing": null,
+     "problems": [],
+     "summary": null,
+     "points": null
+    },
+    {
+     "task": "quadruped_trail",
+     "category": "legged",
+     "phase": "done",
+     "total": 18.0,
+     "auto": 18.0,
+     "judge": null,
+     "shots": 3,
+     "cost": 6.85,
+     "minutes": 33.8,
+     "smoke": "FAIL",
+     "scores": null,
+     "missing": null,
+     "problems": [],
+     "summary": null,
+     "points": {
+      "deliverables": 3.33,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 0.0,
+      "task_checks": 2.67,
+      "env_py": 4.0,
+      "visual_check": 0.0,
+      "assets": 0.0
+     }
+    },
+    {
+     "task": "sd_intersection",
+     "category": "self-driving",
+     "phase": "done",
+     "total": 0,
+     "auto": 0.0,
+     "judge": null,
+     "shots": 3,
+     "cost": 4.93,
+     "minutes": 32.2,
+     "smoke": null,
+     "scores": null,
+     "missing": null,
+     "problems": [],
+     "summary": null,
+     "points": null
+    },
+    {
+     "task": "warehouse_amr",
+     "category": "logistics",
+     "phase": "done",
+     "total": 0,
+     "auto": 0.0,
+     "judge": null,
+     "shots": 3,
+     "cost": 0.0,
+     "minutes": 23.7,
+     "smoke": null,
+     "scores": null,
+     "missing": null,
+     "problems": [],
+     "summary": null,
+     "points": null
+    }
+   ],
+   "void": true,
+   "mean_total": null,
+   "n_done": 6,
+   "n": 6
+  },
+  {
+   "iter": "iter_02",
+   "notes": "fixes from iter_01 partials: networkx, visual merge, scope rule; harness outage-resume",
+   "rows": [
+    {
+     "task": "arm_kitchen",
+     "category": "robot-arm",
+     "phase": "done",
+     "total": 87.0,
+     "auto": 37.0,
+     "judge": 50.0,
+     "shots": 2,
+     "cost": 5.27,
+     "minutes": 18.6,
+     "smoke": "PASS_WITH_WARNINGS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 7,
+      "physics": 9
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "visual",
+       "description": "At the home pose the overhead camera is partly blocked by the arm. The final report says the arm was folded back so the overhead view is clear, but the arm's upper link still lies across the middle of the counter between the plate and the apple. The wrist camera's home view is also largely filled by the arm's own links.",
+       "evidence": "regrade/contact_sheet.png cam_overhead_cam: a white link runs top to bottom through the centre of the counter; cam_wrist_cam: an orange/grey link fills the right third of the frame",
+       "fix": "Add a check to the smoke/visual tooling that measures how much of each named sensor camera's image is covered by robot geoms at reset (segmentation render) and warns above ~10%. Tell the playbook to pick a home pose that keeps the arm out of the overhead camera's view."
+      },
+      {
+       "severity": "low",
+       "area": "tooling",
+       "description": "The regrade filmstrip shows only a generic 4 s run of arm motion in which the grasp and lift can't be seen. The actual pick-and-place evidence is only in the agent's own demo_cameras.png.",
+       "evidence": "regrade/filmstrip.png: 8 frames from 0 to 4 s, arm moving near the mug, no visible lift; smoke/demo_cameras.png shows the apple grasped, carried and placed on the plate",
+       "fix": "When controller.py exists, have the regrade filmstrip run the env's own scripted demo through its full length (close, lift, transfer, release) and use a camera close to the object."
+      },
+      {
+       "severity": "low",
+       "area": "tooling",
+       "description": "The auto_iso_back camera sits behind the kitchen's back wall and renders an almost empty image, which counts as a render_problem.",
+       "evidence": "grade.json render_problems; regrade/contact_sheet.png auto_iso_back shows only wall and floor",
+       "fix": "Auto-camera placement should cast a ray toward the scene centre and move a camera, or skip it, when the first hit is a static wall or room geom."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The plate renders almost pure white and blown out in the overhead and wrist views. The low-poly apple's faceted body reads somewhat like a red pepper in the front view.",
+       "evidence": "regrade/renders/cam_front.png apple; cam_overhead_cam plate",
+       "fix": "In the playbook's material step, cap albedo/specular for white meshes and check contrast in the camera images."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The passive settling check warns that the apple is moving at t = 5 s. This is expected (the demo is carrying it), but it means the generic check gives no information here.",
+       "evidence": "grade.json smoke_regrade.warned",
+       "fix": "The smoke passive-settling check should run with the arm holding its home pose (no demo), or skip objects the controller is currently grasping."
+      }
+     ],
+     "summary": "A strong, well-aligned MuJoCo build. The brief came before building, every must-have is present, and an independently verified pick-and-place lifts the apple 18 cm and sets it on the plate. Assets are well chosen and credited. The main weaknesses are visual: the arm partly blocks the overhead camera at home despite the report saying otherwise, and the plate renders blown out. A few tooling gaps remain (generic filmstrip, back camera behind the wall).",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 7.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "drone_gates",
+     "category": "aerial",
+     "phase": "done",
+     "total": 87.5,
+     "auto": 37.0,
+     "judge": 50.5,
+     "shots": 2,
+     "cost": 6.06,
+     "minutes": 20.8,
+     "smoke": "PASS_WITH_WARNINGS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 8,
+      "physics": 8
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "tooling",
+       "description": "The regrade filmstrip only covers t=0\u20134 s of a ~25 s flight, so it shows the takeoff but never shows the drone passing through a gate. Gate passage is backed only by numbers in the task checks, with no visual evidence.",
+       "evidence": "regrade/filmstrip.png: 8 frames from 0.00 to 4.00 s; the drone is still near the pad and no gate is crossed",
+       "fix": "Have the filmstrip tool sample the whole controller duration (or key events such as each gate crossing, read from task_checks), and add a gate-crossing frame strip to the playbook for navigation demos."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The tracking camera clips into a bush or rock near the end of the filmstrip. A large dark polygon fills the frame and hides the drone.",
+       "evidence": "regrade/filmstrip.png tracking t=4.00s: big dark-green and brown geometry covers the right half of the frame",
+       "fix": "Give tracking or chase cameras a collision-aware offset (raycast with mj_ray and pull the camera in), or render the filmstrip with a high, elevated chase."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The drone's collision shape is one coarse box that covers the props and the landing gear. Tree canopies are solid colliders, so the RL crash termination is conservative.",
+       "evidence": "regrade/collision_sheet.png collision_robot: a large red box around the whole quad; collision_overview: canopies fully filled",
+       "fix": "In the playbook, use per-arm capsules for multirotors and offer the option of non-colliding (or contype-filtered) foliage for canopies."
+      },
+      {
+       "severity": "low",
+       "area": "assets",
+       "description": "The 'picnic_table' asset is a Poly Pizza model titled 'Park Bench', so it may not read as a picnic table.",
+       "evidence": "assets/polypizza/CREDITS.md: picnic_table -> \"Park Bench\" by Sammy",
+       "fix": "Make the asset step compare the model title or preview with the requested object and flag mismatches in ASSETS.md."
+      },
+      {
+       "severity": "low",
+       "area": "alignment",
+       "description": "The shot-1 brief asked about the action space, but the user's request had already implied per-rotor control. It is a minor redundancy, and the brief also left the FPV camera as an implied extra rather than asking about it.",
+       "evidence": "shot1_reply.md question 1",
+       "fix": "Base the brief's questions on what the request leaves unclear; don't re-ask choices the request already settles."
+      }
+     ],
+     "summary": "This is a strong, honestly reported MuJoCo drone-racing environment. It has every must-have, a working Gymnasium env, and non-trivial checks that the independent regrade confirms (gates in order, no collisions, hover within 6 mm). The main gaps are in visual evidence and polish: the filmstrip never shows a gate passage, a tracking camera clips into scenery, and the drone and canopy colliders are coarse.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 7.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "isaac_synthetic",
+     "category": "isaac-preferred",
+     "phase": "done",
+     "total": 86.0,
+     "auto": 37.0,
+     "judge": 49.0,
+     "shots": 2,
+     "cost": 15.96,
+     "minutes": 68.3,
+     "smoke": "PASS_WITH_WARNINGS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 7,
+      "physics": 8
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "visual",
+       "description": "The camera-rig body (a black box on a short post) is visible in the user's requested down-aisle camera and in sample_cam. It is an unlabelled distractor in the hero view, and its post stops short of the floor, so it looks like it is floating.",
+       "evidence": "regrade/renders/cam_aisle_down.png: a black box sits in the aisle to the right of the cart. collision_sheet visual_robot: the post ends above the floor.",
+       "fix": "When a scene's purpose is camera/SDG, hide or exclude rig/debug bodies from the named data cameras (put them in a geom group the renderer skips, or move the rig out of frame by default). Add a smoke check that the fixed hero cameras contain no unlabelled non-environment bodies."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The walls are tinted pink/salmon and show blotchy shadow patches. The store lighting looks unnatural for a 'photoreal' preview, and the overview/top auto cameras look washed out.",
+       "evidence": "regrade/contact_sheet.png: pink end and side walls with rectangular darker patches in cam_overview, auto_front and auto_robot_cam_rig.",
+       "fix": "In the playbook's lighting step, render a neutral grey/white wall swatch and check white balance. Cap point-light count and intensity so walls don't saturate to a tint."
+      },
+      {
+       "severity": "low",
+       "area": "tooling",
+       "description": "The smoke check's floating_objects rule flags hanging signs, ceiling lights and wall bands as floating (0.50 m gaps). These are intentionally suspended, so the result stays PASS_WITH_WARNINGS and the warning is noise.",
+       "evidence": "grade.json smoke_regrade.warned: layout/floating_objects lists band_0, sign_0..3, light_0.",
+       "fix": "Let build scripts tag bodies as 'mounted/suspended' (ceiling or wall attachment) so the floating check skips them, and have the playbook require that tag for signs and lights."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The motion demo is only the camera rig translating along a shelf. That is adequate for an SDG scene but shows little dynamic behaviour. The fixed_wide filmstrip view is mostly the grey back of a gondola.",
+       "evidence": "regrade/filmstrip.png: the bottom row is dominated by a grey back panel, and the top row shows the rig moving.",
+       "fix": "For SDG scenes, have the filmstrip show the randomization (different seeds/layouts per frame) rather than rig motion, and auto-pick a fixed_wide camera that isn't occluded by a large panel."
+      },
+      {
+       "severity": "low",
+       "area": "playbook",
+       "description": "The cost and time were high for this task: $16 and about 68 minutes in shot 2, with 117 turns.",
+       "evidence": "run_meta.json shot 2: cost_usd 15.96, duration_s 3712.",
+       "fix": "Add budget checkpoints to the playbook (e.g. stop extending dry-run/coverage features after the core must-haves and validators pass)."
+      }
+     ],
+     "summary": "This is an excellent isaac-preferred run. The confirmation brief is correct, and the MuJoCo build is realistic and well tested. It has a validated USD stage, an Isaac smoke script and a generator with a dry run, and it is honest that Isaac itself was never executed. The deductions are for the unlabelled camera-rig body sitting in the requested down-aisle view, pink-tinted, blotchy lighting, noisy floating warnings on intentionally hanging signs, and high cost.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 7.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "quadruped_trail",
+     "category": "legged",
+     "phase": "done",
+     "total": 89.0,
+     "auto": 40.0,
+     "judge": 49.0,
+     "shots": 2,
+     "cost": 6.02,
+     "minutes": 18.8,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 7,
+      "physics": 8
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "visual",
+       "description": "Rocks barely register in wide shots. Most of the 10 rocks are 7-14 cm stepping stones that render as grey specks on a 30 x 30 m field, and the boulders are modest. The scene looks like a grassy hill with trees rather than a rocky trail.",
+       "evidence": "regrade/contact_sheet.png cam_overview/auto_overview/auto_top: rocks appear only as tiny dots; the larger rocks are only clearly visible in cam_stairs_view",
+       "fix": "Playbook: when the user lists an obstacle class (rocks), make sure at least a few instances are clearly visible in the overview camera (e.g. a minimum on-screen pixel size or 0.5-1 m boulders near the trail), and add a visual-check row that names each requested object class per overview image."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "There is no explicit task check for 'feet in contact with terrain' during the stand, or for 'spawns on the surface' (initial foot-to-ground gap). Both are only implied by stands_3s (dz <= 5 cm) and no_trunk_contact.",
+       "evidence": "task_checks.py: stands_3s measures trunk dz/tilt/drift; no check reads the foot touch sensors during the stand or the initial foot clearance",
+       "fix": "Legged-template task_checks: always include check_feet_contact_stand (all 4 touch sensors > 0 for >95% of the stand) and check_spawn_on_surface (initial foot z minus surface z within \u00b11 cm), so every user-listed task check maps 1:1 to a named check."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The hills are gentle (1.2 m relief over 30 m, max slope 14\u00b0), so 'rough hilly terrain' reads as rolling grass. The 5 cm roughness can hardly be seen at robot scale.",
+       "evidence": "regrade/renders/auto_robot_dog.png and cam_chase: the ground near the robot looks almost smooth; grade.json rebuild log max_slope 14.4\u00b0",
+       "fix": "Playbook: for 'rough' terrain, use a higher-frequency roughness band (8-10 cm peak-to-peak away from the start pad) or a few rough patches, and confirm the roughness can be seen in a robot-scale closeup."
+      },
+      {
+       "severity": "low",
+       "area": "assets",
+       "description": "The brief promised a CC0 rock. The build used a CC-BY rock (Danni Bittman) plus a CC0 boulder (Quaternius). The final report and the credits are accurate, but they differ from the brief.",
+       "evidence": "shot1_reply.md 'a rock (CC0)' vs assets/polypizza/CREDITS.md listing rock CC-BY 3.0 and boulder CC0",
+       "fix": "Playbook: in the final report, list any license or asset changes from the confirmed brief."
+      }
+     ],
+     "summary": "A well-aligned, complete MuJoCo quadruped trail: the confirmation brief came first, every must-have is present, the stair dimensions are measured exactly, and the regrade smoke run passed with honest reporting. The main weaknesses are visual: the rocks are tiny and barely visible in overviews, and the terrain is gentle rolling grass rather than rough. Feet contact and spawn-on-surface are only covered indirectly by the checks.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "sd_intersection",
+     "category": "self-driving",
+     "phase": "done",
+     "total": 88.5,
+     "auto": 37.0,
+     "judge": 51.5,
+     "shots": 2,
+     "cost": 9.59,
+     "minutes": 33.5,
+     "smoke": "PASS_WITH_WARNINGS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 9,
+      "visual": 8,
+      "physics": 8
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "tooling",
+       "description": "The regrade filmstrip's tracking camera is blocked by a tree crown in most frames, and it only covers 4 s. You can't see the ego car crossing the intersection in it, so the core demo claim can't be checked from the images alone.",
+       "evidence": "regrade/filmstrip.png: the tracking row is mostly tree foliage at t=0-0.57s and t=3.43s; both rows end at t=4.0s while the car is still before the intersection.",
+       "fix": "Make the filmstrip span the whole demo and follow the ego with the scene's own chase camera (or a camera that checks for occlusion), not an auto-placed side camera. Add a filmstrip occlusion check that fails when most of the frame is not the target."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "No check covers 'no penetration between cars and road' (wheel/chassis vs ground depth over the rollout). obstacles_are_solid only limits bumper penetration into a parked car.",
+       "evidence": "task_checks.py: the checks are braking, drives_through, obstacles_solid, cruise_speed, signals/peds, steering, stop_at_red, turn_routes. None measures contact depth against the road.",
+       "fix": "When the user lists penetration as a task check, the playbook should require a dedicated check that records the maximum contact penetration between every car and the ground over the demo and asserts it stays under a few millimetres."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The scene only means something when run through Python. Lights and pedestrians are scripted outside the MJCF, so in the plain MuJoCo viewer they stay frozen. Only the eastbound approach has routes and scoring.",
+       "evidence": "shot2_reply.md, 'Things that differ from the plan'",
+       "fix": "Prefer in-model mechanisms (mocap driven by a bundled viewer script by default, or plugin/keyframe-based lamp colours) and give a one-command viewer launcher. Generate routes for every approach when the intersection is symmetric."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "Some trees overhang parked cars and pedestrians, and a building footprint overlaps a pedestrian path's bounding box. The layout check flags this as a warning. The agent says it's harmless, but it clutters the camera views (the trunk in the auto_robot_ego foreground).",
+       "evidence": "grade.json smoke_regrade warned static_overlaps. regrade/renders/auto_robot_ego.png has a large trunk in front of the camera.",
+       "fix": "Place trees in the layout with clearance from parking bays and pedestrian paths, so the overlap warning doesn't come up and the cameras aren't blocked."
+      },
+      {
+       "severity": "low",
+       "area": "alignment",
+       "description": "The brief claimed strong Poly Pizza matches for traffic lights, but the build made them procedurally. That was justified, but the brief overstated how well its asset plan was grounded.",
+       "evidence": "shot1_reply.md says the traffic lights would come from Poly Pizza. shot2_reply.md says the traffic lights were built in code.",
+       "fix": "In the brief, mark assets that need runtime state (switchable lamps) as procedural from the start, instead of listing them as Poly Pizza matches."
+      }
+     ],
+     "summary": "A thorough, well-aligned MuJoCo intersection: every must-have is present, the low-poly assets are coherent and correctly scaled, and the checks are meaningful, with the regrade confirming PASS_WITH_WARNINGS. The main gaps are evidence and robustness. The filmstrip is blocked by a tree and stops before the intersection, there's no explicit check for cars penetrating the road, and lights and pedestrians only work through the Python driver.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 7.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "warehouse_amr",
+     "category": "logistics",
+     "phase": "done",
+     "total": 94.0,
+     "auto": 40.0,
+     "judge": 54.0,
+     "shots": 2,
+     "cost": 4.19,
+     "minutes": 21.2,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 10,
+      "assets": 9,
+      "visual": 8,
+      "physics": 9
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "tooling",
+       "description": "The generic smoke rollout and filmstrip cover only the first 4 s with a fixed camera. They show the AMR leaving the dock and never show the aisle drive or the arrival at the goal. The agent admits that the rollout.mp4 camera passes through the racks. Only the agent's own demo_filmstrip shows the actual task.",
+       "evidence": "regrade/filmstrip.png: 8 frames from t=0 to t=4.00 s, with the robot still in the open floor area next to the dock; shot2_reply.md says to use demo.mp4 instead of rollout.mp4",
+       "fix": "Make the smoke filmstrip span the whole controller episode (until done plus a hold period). Use a robot-tracking camera that is collision-aware or placed above the racks, so the regrade evidence shows the goal being reached."
+      },
+      {
+       "severity": "low",
+       "area": "alignment",
+       "description": "The brief's default was 3 rows and 2 aisles with a loop route, and it treated the lidar as optional. The build changed to 4 rows and 3 aisles with a single aisle-to-goal route and a 36-ray lidar. These changes follow the user's answers, which is correct. However, the final report does not say that it departed from the brief's defaults.",
+       "evidence": "shot1_reply.md Q1/Q2 defaults vs shot2_reply.md '4 rows of pallet racks forming 3 aisles'",
+       "fix": "In the final report, add a short 'Changed from the brief because of your answers' line."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The AMR reads as a plain box with a large grey charging-dock slab right next to it at the start. In several renders, including the robot closeup, the dock and the robot look like one oddly shaped vehicle. The AMR itself is very boxy, with no visible bumper or safety-scanner detail.",
+       "evidence": "regrade/renders/auto_robot_amr.png and collision_sheet visual_robot: the grey dock block with its yellow top is flush against the robot's front",
+       "fix": "When a robot spawns in a dock, give the dock a clearly different silhouette and colour (or leave a gap). Add a closeup render taken after the robot has driven away from the dock."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The lidar is noiseless and the controller's lidar-based obstacle slowdown is never exercised. No check covers the case where an obstacle is present.",
+       "evidence": "shot2_reply.md: 'slows or stops if the lidar sees something close ahead, which never happens on the clear route'; task_checks.py has no obstacle test",
+       "fix": "When a safety behaviour is claimed, add a task check that places an obstacle in the path and asserts that the robot stops."
+      }
+     ],
+     "summary": "This is a strong, honest build. The agent confirmed first, chose MuJoCo correctly, and delivered every must-have. The demo shows the AMR driving down an aisle and stopping on the goal pad with no collisions, verified by meaningful task checks and a PASS from the independent regrade. The main gaps are presentation: the generic smoke filmstrip only covers the first 4 s near the dock, and the AMR is a plain box that blends into its charging dock.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    }
+   ],
+   "void": false,
+   "mean_total": 88.7,
+   "n_done": 6,
+   "n": 6
+  },
+  {
+   "iter": "iter_03",
+   "notes": "playbook v3: full-demo evidence (DEMO_SECONDS), showcase videos, settling at home pose, camera unblocking, salience hints, exact overlaps, one check per criterion; 6 unseen extended tasks for breadth",
+   "rows": [
+    {
+     "task": "factory_sorting",
+     "category": "industrial",
+     "phase": "done",
+     "total": 93.0,
+     "auto": 40.0,
+     "judge": 53.0,
+     "shots": 2,
+     "cost": 6.33,
+     "minutes": 35.7,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 10,
+      "assets": 8,
+      "visual": 8,
+      "physics": 9
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "low",
+       "area": "alignment",
+       "description": "The shot-1 brief committed to a friction-driven moving belt surface and didn't ask about the belt mechanism. The user had to volunteer that setting box velocities was acceptable. Several plan details also drifted in the build (conveyor 3 m -> 4.1 m, bin size, base rotation, drop changed to lowering). All were disclosed, but the brief was less grounded than it could have been.",
+       "evidence": "shot1_reply.md line 8 ('friction is what carries the boxes') vs shot2_reply.md 'Changes from the confirmed plan' items 1-6",
+       "fix": "Playbook: in the brief, state the simplest conveyor implementation (kinematic box velocity) as the default and offer a friction belt as an option. Size the conveyor and cell from the downloaded asset dimensions (e.g. fence panel width) before quoting numbers."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The 8 cm boxes are tiny in the overview and auto views, so the colour sorting is hard to read from the main camera. The wrist camera mostly shows belt stripes and a red beam, with little of the boxes.",
+       "evidence": "regrade/contact_sheet.png cam_overview/auto_overview (boxes are a few pixels); cam_arm_wrist_cam is dominated by the belt",
+       "fix": "Playbook: have the showcase/tracking camera frame the pick point and bins tightly. Check that the task objects take up a meaningful share of pixels in at least one named camera."
+      },
+      {
+       "severity": "low",
+       "area": "assets",
+       "description": "The arm and boxes are procedural. That matches the confirmed default, but the arm reads as a generic cobot. The Poly Pizza fence model also needed its chain-link scale modified (34 cm holes) to look right.",
+       "evidence": "shot2_reply.md change 4; regrade/renders/auto_robot_arm.png",
+       "fix": "Tools: add a 'texture/mesh scale sanity' note to the asset manifest. Offer a MuJoCo Menagerie arm (UR5e/Panda) as an easy, tested option in the robot question."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The fence collision geometry is solid boxes per panel. This is fine for a cell, but the boxes and arm could never pass through the mesh holes, and the collision view shows the fence fully opaque.",
+       "evidence": "regrade/collision_sheet.png collision_overview: fence panels as solid tan slabs",
+       "fix": "Playbook: document in ASSETS.md when a mesh-holed object is given a solid collider, and why."
+      }
+     ],
+     "summary": "This is a strong, faithful build. The brief came first, MuJoCo was used with velocity-driven boxes as the user asked, and the arm sorts all 6 coloured boxes into the matching bins with a real finger grasp, confirmed by an independent PASS regrade. The remaining gaps are minor: plan drift from the brief, small boxes in the overview framing, and a procedural arm.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "harbor_boat",
+     "category": "marine",
+     "phase": "done",
+     "total": 86.5,
+     "auto": 37.0,
+     "judge": 49.5,
+     "shots": 2,
+     "cost": null,
+     "minutes": 110.6,
+     "smoke": "PASS_WITH_WARNINGS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 8,
+      "physics": 7
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "physics",
+       "description": "Buoyancy and drag live in a Python hydro.apply() that every caller has to invoke before each step. The scene is not self-contained: in the stock MuJoCo viewer, or in the smoke tool's passive rollout, the boat and buoys sink. That is why passive settling warns that all 4 buoys moved 2.24 m.",
+       "evidence": "grade.json smoke_regrade warned rollout/passive_settling (buoys 2.24 m); resume1_reply.md 'there is no water and the boat and buoys sink'",
+       "fix": "For marine scenes in MuJoCo, have the playbook offer a hydro hook that the smoke/rollout tooling picks up automatically (e.g. an env-declared pre_step callback that the harness calls). Failing that, add a passive fallback such as fluid-shape damping plus a weld/spring hold so the stock viewer doesn't sink everything."
+      },
+      {
+       "severity": "medium",
+       "area": "physics",
+       "description": "Four task-check criteria were loosened after the agent saw the results. The demo-loop criterion switched from swept angle (measured at 356.8\u00b0, short of 360\u00b0) to a 370\u00b0 bearing range, and the buoy-dip limit went from 40 cm to 'top never submerges' after a 43 cm dip. All four changes are disclosed, but the boat never closes a full 360\u00b0 sweep around the buoy.",
+       "evidence": "resume1_reply.md 'I changed four check criteria after seeing results'; grade.json env_py swept_deg 356.8",
+       "fix": "Add a playbook rule: fix the success criteria before the first run. If a check fails narrowly, fix the controller (for example, extend the loop by 10-20\u00b0) rather than relaxing the threshold."
+      },
+      {
+       "severity": "low",
+       "area": "tooling",
+       "description": "grade.json reports latest_examiner verdict FAIL (1 fail) while the agent's final smoke run reports 0 fails. The FAIL is neither explained nor reconciled in the report.",
+       "evidence": "grade.json latest_examiner {fail:1, verdict:FAIL} vs smoke/smoke_report.json fail 0",
+       "fix": "Require the agent to re-run the examiner after its final change and quote the final examiner verdict in the report."
+      },
+      {
+       "severity": "low",
+       "area": "tooling",
+       "description": "The shot-2 session hit the usage limit and the final report arrived only after a resume. The build took about 110 minutes.",
+       "evidence": "shot2_reply.md usage limit message; run_meta build_seconds 6634, outage_resumes 1",
+       "fix": "Budget the iterations: cap the visual/check tuning loops and write REPORT.md early, updating it incrementally so a cutoff still leaves a report."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The scene was padded with unrequested dressing (warehouse, shed, crates, lamps). The dock is 16.8 m rather than the ~14 m in the brief, and the helm camera was swapped for a bow camera. All of these are disclosed and minor.",
+       "evidence": "contact_sheet.png quay buildings; resume1_reply.md 'Changes from the confirmed plan'",
+       "fix": "Keep extra dressing optional and list it in the brief, so the user can opt in."
+      }
+     ],
+     "summary": "A well-executed harbor in MuJoCo. A real-scale Poly Pizza boat, dock and lighthouse sit alongside convincing procedural buoys, and the demo motors around a buoy and returns, with all task checks passing in an identical regrade. Points come off because buoyancy is an external Python hook (passive rollout and the stock viewer sink everything), the demo-loop and dip criteria were loosened after results came in, and an unexplained examiner FAIL remains.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 7.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "humanoid_gym",
+     "category": "humanoid",
+     "phase": "done",
+     "total": 90.5,
+     "auto": 40.0,
+     "judge": 50.5,
+     "shots": 2,
+     "cost": 6.59,
+     "minutes": 25.7,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 8,
+      "physics": 8
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "physics",
+       "description": "The user named 'joint limits respected' as a task-level check, but no task check tests it. Nothing verifies that joint angles stay within their ranges during the stand or the ragdoll collapse. 'No self-penetration explosion' is only covered indirectly, by the ragdoll penetration, speed and energy bounds.",
+       "evidence": "task_checks.py: 8 checks (spawn, stand, feet, ramp geometry/grip, obstacles, height scan, ragdoll); none read qpos against jnt_range or check limit-constraint violation",
+       "fix": "Playbook: map every user-listed task-level check to a named task check with the same name. For humanoids, add a standard joint_limits_respected check (max qpos overshoot past jnt_range < ~2 deg during the stand and the collapse) and an explicit self_collision check (count and penetration of robot-robot contacts)."
+      },
+      {
+       "severity": "low",
+       "area": "alignment",
+       "description": "The brief's default robot was a downloaded Unitree G1, and the classic procedural humanoid was listed only as an alternative. The user had to override it. The final build follows the user's answer correctly.",
+       "evidence": "shot1_reply.md question 1 default [Unitree G1]; shot2 build uses procedural 21-DoF humanoid",
+       "fix": "When the request just says 'humanoid robot' with no specific model, make the no-download classic MuJoCo humanoid the default and offer Menagerie robots as the alternative."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The filmstrip's scene_overview row is shot from outside through the tinted roof and walls, so the standing robot can't be seen at that scale. The tracking row is also a single fixed close angle, so it adds little beyond showing that the robot doesn't move.",
+       "evidence": "regrade/filmstrip.png bottom row: building exterior only; auto_overview/auto_iso_back also look through dark glass",
+       "fix": "In the filmstrip tool, prefer an interior named camera such as cam_overview for the second row whenever the scene has an enclosing hall."
+      },
+      {
+       "severity": "low",
+       "area": "assets",
+       "description": "The Poly Pizza benches are scaled to 1.32 m long, shorter than a real gym bench. The agent disclosed this.",
+       "evidence": "assets/ASSETS.md bench row; shot2_reply.md",
+       "fix": "Allow non-uniform scaling within about 20% per axis for furniture whose length:height ratio doesn't match, or pick a different model."
+      }
+     ],
+     "summary": "This is a high-quality build that follows the user's answers: a procedural 21-DoF humanoid holds a PD stand in a convincing gym hall with low obstacles and a 10 deg ramp. The independent rebuild and smoke regrade both pass, and the agent reported honestly. The main gap is that the user's 'joint limits respected' criterion has no dedicated check, and self-collision is only tested indirectly.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "lab_bench",
+     "category": "fallback-stress",
+     "phase": "done",
+     "total": 89.5,
+     "auto": 40.0,
+     "judge": 49.5,
+     "shots": 2,
+     "cost": null,
+     "minutes": 74.9,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 8,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 8,
+      "physics": 8
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "high",
+       "area": "tooling",
+       "description": "There is no final report. The shot-2 reply is only a rate-limit message, so the user never got a summary of what was built, how to run it, the test results or the known caveats. The build itself finished (all deliverables exist and the regrade passes).",
+       "evidence": "shot2_reply.md: 'You've hit your 5-hour limit \u00b7 resets 4:30pm'; run_meta.json shows outage_resumes: 1 and build_seconds: 4493",
+       "fix": "Have the harness detect a final reply that is only a limit or outage message and resume the session just to write the report. In the playbook, write a short REPORT.md into the env folder as soon as the smoke test passes, so a report exists even if the last message is lost."
+      },
+      {
+       "severity": "medium",
+       "area": "visual",
+       "description": "The automatic 'tracking' camera in the filmstrip ends up inside the arm links from t=8 s onward, so half of the tracking row shows grey and orange link interiors instead of the tube transfer.",
+       "evidence": "regrade/filmstrip.png: tracking frames t=8-14 s are filled by arm geometry. The agent noted this in visual_check.md but did not fix it.",
+       "fix": "In the smoke tool, aim the tracking camera at the moved object or the end-effector site from a pulled-back distance, with a near-clip or occlusion check. Or let task_checks name the tracked body (e.g. move_tube) so the filmstrip follows the tube."
+      },
+      {
+       "severity": "low",
+       "area": "assets",
+       "description": "The Lab Table mesh is scaled per axis (x 0.58, y 0.59, z 1) and the test-tube mesh is squeezed by 0.42 in x/y. This distorts the models. It looks acceptable here, but per-axis scaling can warp details.",
+       "evidence": "assets/ASSETS.md rows for Lab bench and Test tube look",
+       "fix": "Playbook: prefer uniform scaling, and if an axis needs more than about 30% squeeze, look for an alternative model or a procedural build. Record the distortion factor in ASSETS.md (done here) and check it in the visual check."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "No check confirms that the fingers actually hold the tube during the carry. Grasping is only inferred from the lift happening in the lift/carry phases.",
+       "evidence": "task_checks.py check_tube_lifted_clear uses max_lift_closed without checking pad contacts",
+       "fix": "Add a standard 'grasped' check template that requires pad-to-object contact on both fingers during lift/carry phases, on top of the lift height."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The microscope's convex-hull collider is much larger than the visible model (a big wedge around the stand and arm).",
+       "evidence": "regrade/collision_sheet.png collision_overview: a red wedge around the microscope",
+       "fix": "Use convex decomposition (or a few primitives) for non-convex Poly Pizza props in the asset tool, rather than a single hull."
+      }
+     ],
+     "summary": "This is a solid, faithful MuJoCo lab bench. All requested equipment is present, the procedural fallbacks are recognisable, and a pick-and-place demo really moves one tube upright into the other rack; independent regrade and rebuild both pass. The main failure is that the user received no final report (the reply was a rate-limit message). There are also smaller issues: the filmstrip tracking camera clips inside the arm, some meshes are scaled per axis, and the grasp is only inferred from the lift.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "mars_rover",
+     "category": "space",
+     "phase": "done",
+     "total": 88.5,
+     "auto": 37.0,
+     "judge": 51.5,
+     "shots": 2,
+     "cost": 6.44,
+     "minutes": 33.8,
+     "smoke": "PASS_WITH_WARNINGS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 8,
+      "physics": 9
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "physics",
+       "description": "The env.py baseline 'heading-to-lander' policy never reaches the lander (it ends 25 m away and gets stuck on a 2.2 m boulder). Only the scripted waypoint demo succeeds, so the RL-facing API has no built-in check that the goal can be reached by a naive policy, and its difficulty isn't calibrated.",
+       "evidence": "grade.json env_py log: 'heading-to-lander policy: steps 1200 dist 25.23 reached False'. shot2_reply mentions it as a feature ('obstacles really matter').",
+       "fix": "Playbook: env.py self-test should include a reference policy that does reach the goal (for example the demo controller wrapped in the env API), or keep the direct line to the goal clear unless the user asked for obstacles that block it. Report both outcomes."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "Some small rocks are never visible in any camera view, and in the wide shots most of the scatter shows up only as specks.",
+       "evidence": "grade.json render_problems: rock03 and rock53 never visible. regrade/contact_sheet.png cam_overview/auto_top.",
+       "fix": "Playbook: when placing procedural scatter, drop or move instances that land on crater walls or behind hills, or add a ground-level scatter camera. Re-run the visibility check before finishing."
+      },
+      {
+       "severity": "low",
+       "area": "assets",
+       "description": "The Quaternius 'Rock' (0.19 m natural size) is scaled up more than 10x to be a 2 m boulder. With the per-model recolouring, the three boulder styles are slightly inconsistent: some faceted, some smooth.",
+       "evidence": "assets/ASSETS.md row 3. regrade/renders/cam_rover_side.png shows hexagonal faceted boulders next to rounder ones.",
+       "fix": "Asset guidance: prefer models whose native scale and polygon density match the role, and don't scale a model past 3-4x its natural size without noting the style mismatch."
+      },
+      {
+       "severity": "low",
+       "area": "alignment",
+       "description": "The confirmation brief proposed a complex rocker-bogie rover with corner steering. The user downgraded it to a simple 4/6-wheel rover, so the agent changed the check accordingly (wheel springs instead of rocker-bogie). It was handled well and disclosed, but the brief over-scoped the rover by default.",
+       "evidence": "shot1_reply.md Rover section vs shot2_reply.md 'Changes from the confirmed plan'.",
+       "fix": "Playbook: in the brief, default to the simplest rover that meets the request (skid-steer, 4-6 wheels) and offer rocker-bogie as an option."
+      }
+     ],
+     "summary": "This is a high-quality, faithful MuJoCo Mars scene. Every must-have is present and checked by meaningful task checks, the independent smoke regrade agrees with the agent's report, and the renders look like a convincing Mars rover-and-lander scene. The main gaps are that the naive env.py policy can't reach the goal and a few minor scatter and asset-consistency issues.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 7.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "robot_soccer",
+     "category": "multi-agent",
+     "phase": "done",
+     "total": 90.5,
+     "auto": 40.0,
+     "judge": 50.5,
+     "shots": 2,
+     "cost": 5.3,
+     "minutes": 25.0,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 8,
+      "physics": 8
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "physics",
+       "description": "The user specifically asked to check that the ball rolls with realistic friction, but no task check measures this. Nothing tests rolling deceleration or roll distance from a given speed. The wall-bounce and goal checks roll the ball, but they never assert how quickly it slows.",
+       "evidence": "task_checks.py: 8 checks (start pose, centre spot, drive tracking, goal detection, wall containment, bounce ratio, push-to-goal, tipping); none measures deceleration or roll distance",
+       "fix": "Playbook: turn every user-listed task check into its own named check_* with a physical target, e.g. a ball launched at 1 m/s on carpet stops within X m, or decelerates at 0.2-0.6 m/s^2. Have the examiner flag any user task check that has no matching check function."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The final report says '31 physics checks passed', but the latest examiner recorded 20 passes. The verdict is still correct (PASS), but the count doesn't match the grading.",
+       "evidence": "shot2_reply.md line 1 vs grade.json latest_examiner pass=20",
+       "fix": "Generate the report's check counts directly from smoke_report.json rather than writing them by hand."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "Late in the demo, the tracking camera clips into the goal frame, so the scoring moment is hidden behind the posts and net.",
+       "evidence": "regrade/filmstrip.png tracking frames t=5.36-7.50s: large white goal-frame bars cover the view",
+       "fix": "Tracking camera helper: keep a minimum distance from static geoms or raise the camera, and show the goal from a fixed end-on camera when the target nears a goal."
+      },
+      {
+       "severity": "low",
+       "area": "assets",
+       "description": "The goal model was stretched by different amounts on each axis (sx 0.475, sy 0.899, sz 0.355) to fit the target size, which flattens the posts. The agent disclosed this, and it is barely noticeable.",
+       "evidence": "grade.json rebuild log goal geometry; shot2_reply.md 'stretched it unevenly'",
+       "fix": "Asset tool: when the aspect ratio is off by more than about 1.5x, prefer another candidate or a procedural goal over non-uniform scaling."
+      }
+     ],
+     "summary": "This is a solid, well-verified 2v2 MuJoCo soccer environment. All six must-haves are present and working, there is a real multi-agent API, and the demo actually scores a pushed goal. The main gap is that the user's 'ball rolls with realistic friction' check was never turned into an actual test. There are also minor problems: the report's check count doesn't match the grading, and the tracking camera clips into the goal.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    }
+   ],
+   "void": false,
+   "mean_total": 89.8,
+   "n_done": 6,
+   "n": 6
+  },
+  {
+   "iter": "iter_04",
+   "notes": "playbook v4: world.py dynamics hook, fixed thresholds, REPORT.md, simplest-design defaults, env.py reaches goal, workspace cams for arms, hidden-scatter hints, suspended-object naming; 4 unseen + 2 core retests",
+   "rows": [
+    {
+     "task": "arm_kitchen",
+     "category": "robot-arm",
+     "phase": "done",
+     "total": 91.5,
+     "auto": 40.0,
+     "judge": 51.5,
+     "shots": 2,
+     "cost": 6.15,
+     "minutes": 20.4,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 10,
+      "assets": 8,
+      "visual": 7,
+      "physics": 9
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "visual",
+       "description": "The arm's home pose puts the upper arm right across the overhead camera's view. It covers about a quarter of the frame and sits right next to the fruit, so the overhead feed has a big white blob in it. That's poor as an observation for learning.",
+       "evidence": "regrade/renders/cam_overhead_cam.png: a large white arm link runs diagonally from the top edge down to the fruit, and the gripper partly hides one corner",
+       "fix": "Add a playbook rule: pick the home pose so the arm is tucked away from the overhead camera's view. Add a smoke check that fails if robot pixels take up more than about 10% of the overhead camera image at reset, not just checking object visibility."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The overhead camera's framing goes past the front edge of the counter, so a strip of white floor shows at the bottom. The arm base is also cut off at the top edge.",
+       "evidence": "regrade/renders/cam_overhead_cam.png: white band along the bottom, and the arm base is clipped at the top",
+       "fix": "Frame the overhead camera from the bounding box of the workspace and objects, with the arm base included. Add a check that the counter top fills the frame."
+      },
+      {
+       "severity": "low",
+       "area": "assets",
+       "description": "The plate renders as a flat white disc with no visible rim or shading. It reads more like a paper circle than a plate. The apple is very low-poly next to the smoother orange and mug, so the styles are mixed.",
+       "evidence": "regrade/renders/cam_front.png: the plate is a flat white ellipse; the apple is a faceted red polygon",
+       "fix": "In the asset preview step, check that the downloaded model's silhouette and shading still read as the object from the demo cameras. Prefer models from one author or style set, or give the plate a slight rim/colour tint."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The demo only places the two fruits. The mug is lifted only in a separate check rollout, with no placement shown in the video. This is allowed (the user said 'mug or a fruit'), but the scene's best-known object never moves in the showcase.",
+       "evidence": "regrade/filmstrip.png: the mug stays in place for all 19 s; shot2_reply.md says the mug lift is a separate check",
+       "fix": "When the demo leaves an object out, add a short tail segment to the showcase video showing the extra check rollout (e.g. the mug lift)."
+      }
+     ],
+     "summary": "A strong, honest build: every must-have is present and working, the independent regrade passes, and the task checks are non-trivial and include a mug lift over 5 cm and objects resting on the counter at start. The main weaknesses are visual: the home pose blocks much of the overhead camera, the overhead framing is loose, and the plate and apple assets look flat or mismatched.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "cartpole_minimal",
+     "category": "classic-control",
+     "phase": "done",
+     "total": 91.0,
+     "auto": 38.0,
+     "judge": 53.0,
+     "shots": 2,
+     "cost": 2.13,
+     "minutes": 19.2,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 10,
+      "assets": 8,
+      "visual": 8,
+      "physics": 9
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The filmstrip's 'workspace' camera is fixed while the cart moves, so the cart drifts out of frame and is partly cut off at the bottom edge around t=2.85-4.28s.",
+       "evidence": "regrade/filmstrip.png top row: at t=4.28s the cart is clipped at the bottom of the frame.",
+       "fix": "In the showcase/filmstrip tool, frame the workspace view with a tracking camera (or fit it to the motion bounds of the actuated body over the rollout) rather than to its starting pose."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "In the overview cameras the 6.3 m rail is framed so wide that the 2 cm pole is only a few pixels thick, and the cart and pole take up a small part of the image.",
+       "evidence": "regrade/renders/cam_overview.png: thin pole and small cart in the middle of a wide frame.",
+       "fix": "The playbook should require at least one default named camera framed on the subject (about 40% of frame height) as well as the full-scene overview."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The build quietly departs from the confirmed 'standard' spec: gravity is 9.81 instead of Gym's 9.8, and the integrator is RK4. Both are disclosed in the report, but the brief had promised 'the same numbers as Gym's CartPole-v1'.",
+       "evidence": "shot1_reply.md says it would use Gym numbers; shot2_reply.md lists the differences from Gym.",
+       "fix": "When the user asks for 'standard' parameters, the playbook should copy the reference values exactly (g=9.8) and flag any planned deviation in the brief, not after the build."
+      },
+      {
+       "severity": "low",
+       "area": "tooling",
+       "description": "The live viewer (view.py) was never run because there was no display, so that deliverable is unverified.",
+       "evidence": "shot2_reply.md 'Not done' section.",
+       "fix": "Add a headless smoke test for viewer scripts, for example importing the module and stepping its loop with a dummy or offscreen viewer."
+      }
+     ],
+     "summary": "A clean, minimal, faithful MuJoCo cart-pole: the brief was confirmed first, every must-have is present and verified, and the physics is validated against the classic equations rather than with trivial checks. The remaining issues are cosmetic: one filmstrip camera loses the cart, the overview is framed very wide, and small undisclosed-in-brief departures from Gym's numbers (g=9.81, RK4) were only reported after the build.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 1.0
+     }
+    },
+    {
+     "task": "cloth_table",
+     "category": "deformable",
+     "phase": "done",
+     "total": 83.4,
+     "auto": 36.38,
+     "judge": 47.0,
+     "shots": 2,
+     "cost": 14.43,
+     "minutes": 93.9,
+     "smoke": "PASS_WITH_WARNINGS",
+     "scores": {
+      "alignment": 8,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 7,
+      "physics": 7
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "high",
+       "area": "tooling",
+       "description": "Shot 2 hit the 90-minute time limit ($14.43). The agent never wrote a final report: shot2_reply.md is a single line about waiting for a smoke run, REPORT.md is missing, and the README still contains 'RESULTS_PLACEHOLDER'.",
+       "evidence": "run_meta.json timed_out=true, duration 5400.7 s; shot2_reply.md is 1 line; README.md line 94 RESULTS_PLACEHOLDER",
+       "fix": "Set a time budget in the playbook: write REPORT.md and fill in README results as soon as the first smoke run passes, then update them after later runs. Stop tuning (e.g. the fold bonus) once 75% of the time is used."
+      },
+      {
+       "severity": "medium",
+       "area": "physics",
+       "description": "The user asked for 'cloth is stable for 3 s', but no check tests that. cloth_spawn_flat only looks at the cloth after 0.5 s of settling, and the arm starts moving soon after.",
+       "evidence": "task_checks.py:154-160 'state after 0.5 s of settling'; README task-check table",
+       "fix": "Turn each user-stated check into a task check with the same name and duration, e.g. a passive 3 s rollout with a bound on particle drift and speed."
+      },
+      {
+       "severity": "medium",
+       "area": "alignment",
+       "description": "The brief promised a diagonal fold with a fold-accuracy check. The build dropped the fold (it was a bonus) and the fold check with it. The README admits this, but the user never got a final report saying so.",
+       "evidence": "shot1_reply.md lists 'Fold accuracy' check; README Known limitations says folding is not in the demo",
+       "fix": "Lock in the required demo (lift) first and treat bonus items as stretch goals with a time box. Report any brief item that was dropped in the final reply."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "In the home pose the arm is folded straight up, so the gripper hangs halfway down the arm column, next to the base. It reads oddly in the overview images. The table is also 1.64x0.99 m instead of the 1.2x0.8 m in the brief.",
+       "evidence": "regrade/renders/auto_robot_arm.png, cam_side.png; README Contents table",
+       "fix": "Choose a home pose with the gripper above the workspace, pointing down at the object. Check that the final asset dimensions match the brief, or explain the difference."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The simulation runs well below real time (regrade realtime_factor 0.27), and the per-particle masses are flagged as tiny. Both are documented, but they slow down RL use.",
+       "evidence": "grade.json smoke_regrade warned",
+       "fix": "Offer a lower-resolution cloth preset (e.g. 15x15) as the default for RL and keep the fine grid optional."
+      }
+     ],
+     "summary": "This is a solid MuJoCo cloth-on-table environment. The arm pinches one corner of a flexcomp cloth by friction and lifts it about 0.33 m, and the regrade confirms all 8 task checks pass. Points are lost because the session timed out without a final report (the README still has a results placeholder), the fold from the brief was dropped, and the user's 3 s stability check is not tested directly.",
+     "points": {
+      "deliverables": 7.38,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 7.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "drone_gates",
+     "category": "aerial",
+     "phase": "done",
+     "total": 93.5,
+     "auto": 40.0,
+     "judge": 53.5,
+     "shots": 2,
+     "cost": 6.06,
+     "minutes": 24.3,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 10,
+      "completeness": 9,
+      "assets": 9,
+      "visual": 8,
+      "physics": 9
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "visual",
+       "description": "The FPV camera image, which is also the RL image observation, has its bottom ~20% filled by a flat white slab with grey prop discs. This is most likely the drone's own top plate or body sitting inside the camera view. It wastes observation pixels and looks like a rendering bug. The agent said it fixed the FPV view by raising the mount, but the slab is still there.",
+       "evidence": "regrade/renders/cam_drone_fpv.png: white band across the lower ~90 px, grey prop slabs in both bottom corners",
+       "fix": "Add an automated FPV-occlusion check to the playbook: render the onboard camera with the drone's own geoms hidden (geomgroup) and compare it to the normal render. Fail if more than 5% of pixels differ. Also put drone visuals in a geom group that the FPV camera excludes by default."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The course is easy for RL. Gates have 1.6 m openings for a 0.35 m drone, and every obstacle is at least 1.73 m from the racing line, so the obstacles barely shape the task. Tree canopies have no colliders, so a policy can fly through foliage without crashing.",
+       "evidence": "shot2_reply.md 'closest obstacle is 1.73 m from the racing line'; grade.json rebuild log_tail",
+       "fix": "In the playbook, for racing or obstacle tasks, place at least one or two obstacles within about 1 m of the racing line. Give canopies a coarse collider, or make canopy collision a clearly documented option."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The hover check uses the built-in cascaded controller at 1.5 m above the pad. It does not test altitude holding through the env's action interface or under disturbance, so it mostly confirms the controller's tuning.",
+       "evidence": "task_checks.py check_hover_holds",
+       "fix": "In the playbook, require the hover check to run through env.step() with action-space commands, and add a small impulse disturbance before the error is measured."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "In the gate-3 closeup, gate 3 is seen edge-on and some gates stand on long thin poles. This reads fine, but the course flow is hard to see in one image. No course line or arrows are shown in the overview.",
+       "evidence": "regrade/renders/cam_gate3_view.png",
+       "fix": "For racing scenes, add a named camera that frames the whole gate sequence, with optional debug sites marking the racing line."
+      }
+     ],
+     "summary": "A high-quality, well-verified MuJoCo drone racing environment. It has a proper confirmation step, all must-haves present and working, and a regrade that independently reproduces the 6/6 in-order, collision-free demo. The main flaws are that the drone's own body blocks the bottom of the FPV observation, and the course is fairly easy (wide gates, obstacles at least 1.7 m from the line, no canopy colliders).",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "home_fetch",
+     "category": "mobile-manipulation",
+     "phase": "done",
+     "total": 92.5,
+     "auto": 40.0,
+     "judge": 52.5,
+     "shots": 2,
+     "cost": 8.02,
+     "minutes": 31.8,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 9,
+      "visual": 8,
+      "physics": 9
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "assets",
+       "description": "Uniform (no-stretch) scaling left several objects off the planned size: coffee table 1.43 x 0.96 m (planned 1.1 x 0.6, oversized for a living room), bookshelf 1.77 m wide (planned 0.9 m). The agent disclosed this but accepted it rather than picking better-proportioned models.",
+       "evidence": "grade.json rebuild log_tail sizes; shot2_reply.md 'Some sizes differ'; auto_side.png shows a very wide bookshelf and a bulky table",
+       "fix": "In the asset step, compare each candidate's native aspect ratio to the target footprint and reject candidates more than ~30% off on any axis before downloading, or let the scaler fit the dominant axis and flag a re-pick when other axes are >25% off."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The coffee table material is nearly black, so in most views it reads as a silhouette with no visible detail, and the cup is the only bright spot on it.",
+       "evidence": "regrade/contact_sheet.png cam_table_view and auto_front: table top is flat dark brown/black",
+       "fix": "Add a visual-check rule that flags large meshes with mean albedo below ~0.1 and lighten or tint them (or add a specular/fill light aimed at them)."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The showcase fly-around clips behind the right wall for about 2 s, so that part shows only the outside of the wall. The agent reported this but did not fix it.",
+       "evidence": "shot2_reply.md 'Not done or not verified'",
+       "fix": "Make the showcase camera path generator raycast from camera to target each keyframe and push the camera inside the room or above the wall height when occluded."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The controller reads the cup pose straight from the simulator state (no perception) and the arm is gravity-compensated. Both are disclosed and fine for a demo, but they make the reach easier.",
+       "evidence": "shot2_reply.md 'Not done or not verified'",
+       "fix": "Playbook: offer an optional camera-based cup detection mode in env.py, and log the gravity-comp assumption in SPEC.md up front."
+      }
+     ],
+     "summary": "This is a strong, well-aligned MuJoCo living-room fetch environment. Every must-have is there, the demo reaches the cup and also grasps and lifts it, and the independent regrade passes. Deductions are mainly for oversized, off-proportion furniture from uniform scaling, a very dark coffee table, and a showcase camera that clips behind a wall; all three were disclosed.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "orchard_drone",
+     "category": "agriculture",
+     "phase": "done",
+     "total": 94.0,
+     "auto": 40.0,
+     "judge": 54.0,
+     "shots": 2,
+     "cost": 4.24,
+     "minutes": 25.0,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 10,
+      "assets": 9,
+      "visual": 8,
+      "physics": 9
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "low",
+       "area": "alignment",
+       "description": "Brief defaulted to 6 rows and a 3-row back-and-forth demo, which was more than the request needed. The user had to cut it down to 4 rows and one row. The brief also didn't include a 'what the robot inspects' question, such as camera-image output or fruit detection.",
+       "evidence": "shot1_reply.md Q1/Q2 defaults; user answer 'Four rows of trees is enough... demo drives down one row'",
+       "fix": "In the brief playbook, size the default to the smallest scene that meets every must-have (for example 4 rows and a single-row demo). Offer larger options as alternatives."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The tracking/chase camera passes behind tree trunks, so one filmstrip frame is mostly hidden by a trunk. Edge frames also show odd brown trunk shards.",
+       "evidence": "regrade/filmstrip.png tracking t=6.57s (trunk fills the left half), t=26.28s (brown wedge at left edge)",
+       "fix": "Add an occlusion check to the visual-check tool: raycast from the tracking camera to the robot and warn when a geom blocks it. Prefer a higher chase camera or one that looks down the row axis for row-following demos."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The low-poly apples are very large compared with the canopy, at about 0.3 m. The barn sits well apart from the orchard, so the overview cameras spend a lot of frame on empty grass.",
+       "evidence": "regrade/renders/cam_rover_cam.png red blobs on the canopies; contact_sheet cam_overview/auto_top",
+       "fix": "Add a check of model feature scale (for example fruit size versus canopy) to the asset review step. Frame overview cameras on the bounding box of the task-relevant objects."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The demo controller uses ground-truth pose for row following, not the camera. That fits a scripted demo, but the inspection camera plays no part in the task and its images are not checked.",
+       "evidence": "shot2_reply.md: observation is a 10-number state vector; no camera-based check",
+       "fix": "When a robot 'with camera' is a must-have, add a task check that renders the robot camera during the demo. It should confirm the image is non-degenerate and that trees are visible on both sides."
+      }
+     ],
+     "summary": "A strong, honest build. It confirmed the plan first, used MuJoCo, and delivered every must-have: 4 tree rows, a tractor, a barn, and a camera rover that drives one row and stays within 0.23 m of centre with zero contacts. The independent regrade confirms every claim. The flaws are minor: the chase camera is hidden by a trunk in some frames, the apples are oversized, the overview framing is loose, and the camera plays no part in any check.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    }
+   ],
+   "void": false,
+   "mean_total": 91.0,
+   "n_done": 6,
+   "n": 6
+  },
+  {
+   "iter": "iter_05",
+   "notes": "playbook v5 + golden v2 (user states success criteria): box-fit scaling, world.py, task-object occlusion check, FPV fix, usage-limit-proof harness; retest the 6 lowest-scoring tasks",
+   "rows": [
+    {
+     "task": "harbor_boat",
+     "category": "marine",
+     "phase": "done",
+     "total": 90.0,
+     "auto": 40.0,
+     "judge": 50.0,
+     "shots": 2,
+     "cost": 10.02,
+     "minutes": 51.7,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 7,
+      "physics": 9
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "alignment",
+       "description": "Boat mass changed from the briefed ~900 kg to 2000 kg, but the final reply's 'Changes from the plan' list leaves this out. The reply states 2000 kg without saying it differs from the brief.",
+       "evidence": "shot1_reply.md: 'about 900 kg'; shot2_reply.md: '6 m, 2000 kg fishing boat', change list has no mass item; SPEC.md:31 mass 2000 kg",
+       "fix": "Playbook: before writing the final report, automatically diff the key numbers in the brief (mass, dimensions, thrust, durations) against the final SPEC, and list every difference under 'Changes from the plan'."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The buoys are only about 1.5 m tall, so they are barely visible specks in the overview, top, side and iso views. The agent needed an extra dedicated camera to show them. The water is a flat, untextured plane, and the optional swell changes the physics but is never drawn.",
+       "evidence": "regrade/contact_sheet.png cam_overview/auto_top/auto_side: buoys are a few pixels; cam_mark shows them clearly",
+       "fix": "Playbook: make sure every must-have object takes up at least a minimum number of pixels in the overview camera, either by framing the overview around the action area or by sizing hero props a little larger. Add a cheap visual wave or normal-map texture whenever swell is offered."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "Seen from above, the shore is a large flat green slab with a beige strip and no detail. The harbor has only one jetty, with no breakwater or harbor structures, so the scene reads as sparse.",
+       "evidence": "regrade/renders/auto_top.png and auto_overview.png",
+       "fix": "Playbook: for 'harbor' scenes, add a few cheap Poly Pizza props on the shore (sheds, crates, a breakwater) to give context, with low-poly fallbacks."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "Swell is physics-only. A user who turns it on sees the boat bob on a flat visual surface, which is disclosed but looks wrong.",
+       "evidence": "shot2_reply.md 'They move the boat but aren't drawn'",
+       "fix": "Tooling: give the water a mocap- or vertex-animated surface mesh, or disable the swell switch unless it is rendered."
+      }
+     ],
+     "summary": "A thorough MuJoCo harbor build. Every must-have is present and working: a floating, controllable boat with thruster and rudder, a wooden dock, moored buoys, a lighthouse, and a demo that rounds a buoy. The physics checks are rigorous and the independent regrade confirms them. The main deductions are an undisclosed change in boat mass from the brief, buoys that are hard to see in wide shots, and a plain, flat-looking water and shore presentation.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "isaac_synthetic",
+     "category": "isaac-preferred",
+     "phase": "done",
+     "total": 91.5,
+     "auto": 40.0,
+     "judge": 51.5,
+     "shots": 2,
+     "cost": 12.08,
+     "minutes": 50.1,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 10,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 8,
+      "physics": 8
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The ceiling is hidden in the MuJoCo renders, so every aisle view has a flat grey/black gradient band across the top instead of a ceiling with lights. The MuJoCo previews look less like a real store than the Isaac stage will.",
+       "evidence": "regrade/renders/cam_aisle_view.png and cam_cart_view.png: dark gradient wedges above the shelves; shot2_reply says 'ceiling is hidden in MuJoCo renders'",
+       "fix": "In the playbook, for indoor scenes keep the ceiling in previews and use one-sided/backface-culled ceiling geoms or exclude it only from overview/top cameras, not from eye-level cameras."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The filmstrip is completely static: there are no actuators and nothing moves for 8 s. That suits a static SDG scene, but the dynamic part of the smoke test shows little more than settling stability, and the 'products rest on shelves' checks are not tested under a disturbance.",
+       "evidence": "regrade/filmstrip.png: 8 identical overview frames; contact_sheet header '0 actuators'",
+       "fix": "For SDG scenes, have the playbook's smoke step run a short drop/settle test (e.g., spawn products and carts a few mm above their supports and confirm they settle without drift) so the filmstrip shows physical validity rather than a frozen frame."
+      },
+      {
+       "severity": "low",
+       "area": "assets",
+       "description": "No Poly Pizza models were used. The rejection is well reasoned and was approved by the user, but the automated asset metrics show 0 models and 0 credits. Low-poly product shapes could still have been used as optional swap-ins for the clutter or carts.",
+       "evidence": "grade.json assets.polypizza_models=0, credits=false; ASSETS.md documents search and rejection",
+       "fix": "Playbook: when Poly Pizza is rejected for realism, still record the rejected candidate IDs in a manifest so graders can confirm the search took place, and provide a scan/USD swap hook (already present for labels)."
+      }
+     ],
+     "summary": "This is an excellent run. The agent correctly identified Isaac as the right backend that can't run on this laptop, confirmed the plan first, built a dense and believable retail aisle in MuJoCo, and exported a validated USD stage with a Replicator script and self-check. The regrade passes everything. The remaining gaps are minor: MuJoCo previews without a ceiling, a static filmstrip with no meaningful dynamics, and no Poly Pizza assets (justified and approved by the user).",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "lab_bench",
+     "category": "fallback-stress",
+     "phase": "shot2",
+     "total": null,
+     "auto": null,
+     "judge": null,
+     "shots": null,
+     "cost": null,
+     "minutes": 0.0,
+     "smoke": null,
+     "scores": null,
+     "missing": null,
+     "problems": [],
+     "summary": null,
+     "points": null
+    },
+    {
+     "task": "mars_rover",
+     "category": "space",
+     "phase": "done",
+     "total": 90.5,
+     "auto": 40.0,
+     "judge": 50.5,
+     "shots": 2,
+     "cost": 7.38,
+     "minutes": 29.6,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 8,
+      "physics": 8
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "physics",
+       "description": "The goal-distance metric changed between the brief and the build. The brief promised the rover would end 'within 5 m of the lander'. The final report says it stops 3.4 m from the lander's legs, while the distance to the lander's centre is 6.1 m (env.py also reports dist=6.10). The agent says no threshold changed, but measuring to the legs instead of the centre quietly redefines the target.",
+       "evidence": "shot1_reply.md says 'within 5 m of the lander'; shot2_reply.md says 'stops 3.4 m from the lander's legs' and gives a final distance of 6.1 m; grade.json env_py shows dist=6.10 m",
+       "fix": "Playbook: freeze each success metric's definition (reference point and units) in SPEC.md at confirmation time. Any change to how a metric is measured must be flagged under 'Changes from the confirmed plan', not just changes to thresholds."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The upright check passes with little margin: maximum tilt is 25.8\u00b0 against a 30\u00b0 limit. The gravity probe runs in a separate one-body model that copies the scene's gravity, so on its own it mostly re-reads the option value. The rover centre-of-mass free-fall measurement makes it more meaningful.",
+       "evidence": "shot2_reply.md table; task_checks.py line 157 builds a standalone probe XML",
+       "fix": "Playbook: run gravity probes inside the actual scene (a free body added to scene.xml, or the robot itself). When a check passes within 15% of its limit, report the margin and either tune for headroom or warn the user."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The heightfield craters show stair-stepped shading and shadows at their edges, and the fixed overview camera makes the rover tiny, so the overview filmstrip row shows hardly any motion.",
+       "evidence": "regrade/renders auto_top and auto_overview show pixelated crater shading; the scene_overview row of regrade/filmstrip.png has the rover as a few pixels",
+       "fix": "Tools: default to a finer heightfield resolution (or smooth normals) for terrain spans over 100 m. Add a second demo camera framed on the route corridor rather than the whole map."
+      },
+      {
+       "severity": "low",
+       "area": "assets",
+       "description": "The lander is a stylised sci-fi model ('Space Lander Base'), recoloured grey and fitted with procedural solar panels. It reads as a lander, but its style contrasts with the more realistic Curiosity-like rover.",
+       "evidence": "regrade/renders/cam_lander_cam.png shows a squat hexagonal pod with stubby legs",
+       "fix": "Playbook: when previewing Poly Pizza candidates, prefer models whose style matches the procedurally built hero object, and note any style mismatch in ASSETS.md."
+      }
+     ],
+     "summary": "A strong, faithful MuJoCo Mars scene. Every must-have is present, the independent regrade is fully PASS, and the visuals clearly read as a rover crossing reddish cratered terrain to a lander among boulders. Deductions are for quietly changing how the goal distance is measured (legs instead of centre), a thin margin on the upright check, a gravity probe that runs outside the scene, and minor heightfield artefacts and a style mismatch on the lander.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "quadruped_trail",
+     "category": "legged",
+     "phase": "done",
+     "total": 90.5,
+     "auto": 40.0,
+     "judge": 50.5,
+     "shots": 2,
+     "cost": 5.77,
+     "minutes": 21.1,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 8,
+      "visual": 8,
+      "physics": 8
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "physics",
+       "description": "Stair climbability is shown only by geometry measurements and by placing the robot on the landing. The robot never actually steps onto a stair from the ground, so 'climbable' is inferred, not shown.",
+       "evidence": "task_checks.py check_stairs_support_robot teleports the robot onto the landing; shot2_reply.md 'Not done or not verified' says this openly",
+       "fix": "Playbook: when stairs are a must-have, add a cheap physical climbability probe, e.g. a scripted single-leg placement onto step 1, or a pushed rigid body or wheeled probe that mounts the first step. Teleport-only support checks should not count as 'climbable'."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The final report says '31 of 31 physics checks'. The grade shows 19 examiner checks plus 9 task checks. The count does not match any artefact, though every verdict is honest.",
+       "evidence": "shot2_reply.md line 1 vs grade.json latest_examiner pass=19, smoke_regrade task_checks=9",
+       "fix": "Report template: copy the check counts verbatim from smoke_report.json rather than summing them by hand."
+      },
+      {
+       "severity": "low",
+       "area": "assets",
+       "description": "4 trees reuse 2 tree models and 7 rocks reuse 3 rock models. They are scaled and rotated, but the scene still looks somewhat repetitive.",
+       "evidence": "rebuild log lists only tree_a/tree_b and three rock models; CREDITS.md has 5 entries",
+       "fix": "Asset step: when placing N instances of a category, download min(N, 3-4) distinct Poly Pizza variants when good ones are available."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "The 30 m tile ends in a sheer cliff edge with blue void beyond it, which shows clearly in the overview and auto cameras. The stairs are a plain untextured beige block, and the landing reads as a solid plinth.",
+       "evidence": "regrade/contact_sheet.png auto_overview/auto_side; renders/cam_stairs_view.png",
+       "fix": "Playbook: add a large flat ground plane or skirt under the heightfield tile, and give procedural structures a stone or concrete material."
+      }
+     ],
+     "summary": "This is a complete, well-verified MuJoCo quadruped trail with every must-have present: a standing 12-DoF robot on a flat spawn pad, a hilly rough heightfield, rocks, 0.15 m-rise stairs and trees. The task checks are meaningful, and the independent regrade passes with an identical rebuild. Gaps are minor: climbability is shown by geometry rather than an actual climb, the report's check count is wrong, asset variety is limited, and the tile edge is visible.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    },
+    {
+     "task": "sd_intersection",
+     "category": "self-driving",
+     "phase": "done",
+     "total": 91.5,
+     "auto": 40.0,
+     "judge": 51.5,
+     "shots": 2,
+     "cost": 6.41,
+     "minutes": 26.2,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 9,
+      "completeness": 9,
+      "assets": 9,
+      "visual": 8,
+      "physics": 8
+     },
+     "missing": [],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "visual",
+       "description": "The tracking/follow camera used in the showcase is blocked in some frames. At about 4.7 s a large green slab (ground or building collider) fills the top half of the frame, and at about 23.6 s a traffic-light pole cuts across the view. The agent said it had fixed its blocked cameras, but the independent filmstrip still shows these occlusions.",
+       "evidence": "regrade/filmstrip.png tracking row, t=4.71s (green slab over the top half) and t=23.57s (dark pole in the foreground)",
+       "fix": "Add an automated occlusion check for every moving camera, sampled across the whole demo rollout and not only at t=0. Use segmentation renders to fail any frame where a non-target geom within a few metres covers more than 20% of the image, and make the tracking camera's distance and height avoid static geoms (for example, raycast and pull in)."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "Pedestrians glide in one frozen walking pose, and the ego SUV's wheels neither spin nor steer visibly. This weakens how realistic the moving agents look from the driver camera.",
+       "evidence": "shot2_reply.md 'Not done' list; cam_intersection_cam.png shows static-pose walkers",
+       "fix": "In the playbook, have the agent cycle 2-4 baked keyframe poses for walkers (mesh swap by phase) and attach visual wheel meshes to the wheel joints instead of the static body mesh."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "Braking is applied as reverse torque on the rear wheels only, so the car starts reversing once stopped. This is unrealistic for self-driving research and could cause problems for RL policies.",
+       "evidence": "shot2_reply.md 'Braking is reverse torque on the rear wheels only; it reverses the car once stopped'",
+       "fix": "Give the car template a separate 4-wheel brake (velocity-dependent damping or a clamp that stops at zero speed) and map negative throttle to braking until the car stops."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The parked-car part of the penetration check is close to trivial: the cars are static, so it only checks their initial geometric gap. The checks also cover only the single scripted rollout, with no perturbed or randomised runs.",
+       "evidence": "task_checks.py check_no_car_road_penetration uses mj_geomDistance on static parked cars at reset",
+       "fix": "In the playbook, require that each task check also runs on 2-3 perturbed rollouts (different seeds, initial speeds, light phases) and that dynamic bodies are checked under motion."
+      }
+     ],
+     "summary": "This is a strong, faithful build. It has a clean confirmation step, every must-have is present, meaningful task checks pass in the independent regrade, and the scene uses good-looking, well-credited Poly Pizza assets at the right scale. The main deductions are occluded tracking-camera frames in the showcase filmstrip and some realism gaps (frozen-pose pedestrians, static wheels, reverse-torque braking), which the agent disclosed honestly.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    }
+   ],
+   "void": false,
+   "mean_total": 90.8,
+   "n_done": 5,
+   "n": 6
+  }
+ ]
+}
