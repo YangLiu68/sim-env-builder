@@ -19,3 +19,6 @@ dashboard/runs/
 .DS_Store
 .idea/
 .vscode/
+
+# Third-party reference media (not ours to redistribute)
+golden/reference/

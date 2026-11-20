@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-10 16:50",
+ "updated": "2026-11-19 17:53",
  "iterations": [
   {
    "iter": "iter_01",
@@ -1674,6 +1674,156 @@
    "mean_total": 90.9,
    "n_done": 6,
    "n": 6
+  },
+  {
+   "iter": "iter_06",
+   "notes": "BASELINE for reference-video input: task flood_intersection (2 phone videos of a flooded SF intersection), unchanged plugin v5; harness now isolates agents from auto-memory",
+   "rows": [
+    {
+     "task": "flood_intersection",
+     "category": "self-driving / reference-video",
+     "phase": "shot2",
+     "total": null,
+     "auto": null,
+     "judge": null,
+     "shots": null,
+     "cost": null,
+     "minutes": 0.0,
+     "smoke": null,
+     "scores": null,
+     "missing": null,
+     "problems": [],
+     "summary": null,
+     "points": null
+    }
+   ],
+   "void": false,
+   "mean_total": null,
+   "n_done": 0,
+   "n": 1
+  },
+  {
+   "iter": "iter_07",
+   "notes": "plugin v6: simkit.flood (depth field, wading physics, manhole fountains, storm look), simkit.reference (keyframes, reference_compare in smoke), playbook media workflow",
+   "rows": [
+    {
+     "task": "flood_intersection",
+     "category": "self-driving / reference-video",
+     "phase": "shot2",
+     "total": null,
+     "auto": null,
+     "judge": null,
+     "shots": null,
+     "cost": null,
+     "minutes": 0.0,
+     "smoke": null,
+     "scores": null,
+     "missing": null,
+     "problems": [],
+     "summary": null,
+     "points": null
+    }
+   ],
+   "void": false,
+   "mean_total": null,
+   "n_done": 0,
+   "n": 1
+  },
+  {
+   "iter": "iter_08",
+   "notes": "plugin v6.2: v6.1 (tyre priority=1 wet grip, baked LIC water map + foam mound, dashboard UV flip) + Geyser(start=) surprise eruptions, flood.pass_fountain/swerve_path, water.md detour recipe; task now asks for the 'erupts ahead -> drive around it' demo. Single task, parallel 1 (iter_06/07 were OOM-killed).",
+   "rows": [
+    {
+     "task": "flood_intersection",
+     "category": "self-driving / reference-video",
+     "phase": "done",
+     "total": 81.0,
+     "auto": 40.0,
+     "judge": 41.0,
+     "shots": 3,
+     "cost": 4.05,
+     "minutes": 110.5,
+     "smoke": "PASS",
+     "scores": {
+      "alignment": 8,
+      "completeness": 7,
+      "assets": 7,
+      "visual": 5,
+      "physics": 8
+     },
+     "missing": [
+      "flood water whose depth VISIBLY differs across lanes (depths differ in physics, 0.11-0.42 m, but the renders show one uniform brown streaked texture with no visual cue of depth per lane)",
+      "manhole fountains as visible water jets (they are flat foam discs with a cluster of white spheres, not upward jets; the agent says so)",
+      "rainy look only partial: grey sky and fog are present, but there is no rain, and the dry-road sections after the flood show blotchy grey reflection patches instead of a wet sheen"
+     ],
+     "problems": [
+      {
+       "severity": "medium",
+       "area": "visual",
+       "description": "Water depth per lane is invisible. All four lanes share the same streaked brown texture and colour, so a viewer can't see the shallow park-side lane vs the deep near-side lane, which is the core of the lane-choice demo.",
+       "evidence": "regrade/contact_sheet.png cam_cam_reference / cam_cam_window_wide; smoke/reference_compare.png row 1: uniform water",
+       "fix": "In the flood/water playbook, require per-lane depth to drive the water's colour/opacity (or tinted overlay strips/ripple density per depth band), and add a visual-check item: 'can you tell the shallow lane from the deep one in the reference camera?'"
+      },
+      {
+       "severity": "medium",
+       "area": "visual",
+       "description": "Fountains read as white sphere blobs on a foam disc, not as jets. The big near-camera fountain looks like a pile of snowballs, while the video shows a wide, frothy dome about 1 m high.",
+       "evidence": "regrade/renders/cam_cam_window_west.png: big fountain = clustered white spheres; reference_frames.jpg: tall frothy domes",
+       "fix": "Give simkit/flood.py a fountain primitive made of stacked, semi-transparent, tapered cylinders/cones (a column plus a spreading crown) with alpha and a per-frame height pulse; the playbook should ban opaque sphere clusters for water."
+      },
+      {
+       "severity": "medium",
+       "area": "visual",
+       "description": "The reference camera is checked at t=1 s, when no cars are in frame. The robotaxi next to the fountain and the queued cars, which dominate the reference frame, are never shown in the compare, so the framing check only covers static layout. The wide view is also pitched too high: about half the frame is low-poly tree crowns, and the Victorian and equipment are outside the left edge (admitted).",
+       "evidence": "smoke/reference_compare.png rows 1-2",
+       "fix": "reference_compare tooling: render cam_reference at the demo time when the ego is nearest the fountain in view, and fit pitch/yaw automatically by matching horizon/curb lines before accepting the framing."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "Scene-dressing fidelity: the Victorian is a flat green box with four windows and no bay windows. The trees are a single umbrella-pine low-poly type, while the video shows dense eucalyptus/cypress. The rest of the block is rows of pastel boxes. The queue of cars to the west is missing.",
+       "evidence": "regrade/renders/cam_cam_window_west.png; contact_sheet auto_overview",
+       "fix": "Add a procedural 'SF Victorian' builder (bay windows, cornice, trim) to simkit, and require at least 2 tree species when the reference shows dense mixed canopy."
+      },
+      {
+       "severity": "low",
+       "area": "visual",
+       "description": "After the flood the dry/wet road shows mirror-like grey blotches that look like render artifacts rather than puddles.",
+       "evidence": "regrade/filmstrip.png tracking t=31.71 s and 37.00 s",
+       "fix": "Wet-road guidance: use low uniform specular/reflectance on the asphalt material instead of blotchy decal patches, or fade puddle decals with distance."
+      },
+      {
+       "severity": "low",
+       "area": "physics",
+       "description": "The flow-push check passes by only 12%, and only after the agent raised the current speed and moved the check to the deepest lane until it passed. This is disclosed and physically defensible, but it is tuning to the threshold. The fountain-uplift check compares measured force with the model's own predicted jet force, which is close to tautological.",
+       "evidence": "REPORT.md 'Changes from the confirmed plan' 1-2; check 4 '938.9 N = predicted 938.9 N'",
+       "fix": "Playbook: set physical parameters from the reference/brief before writing thresholds. Uplift checks should assert an observable effect (body z rise or wheel-load drop vs jet-off run), not equality with the injected force."
+      },
+      {
+       "severity": "low",
+       "area": "tooling",
+       "description": "Shot 2 timed out after 90 minutes with 0 turns and an empty reply, so a resume shot was needed. That wasted most of the wall-clock time.",
+       "evidence": "run_meta.json shot 2 timed_out true, duration 5406.7 s; shot2_reply.md empty",
+       "fix": "Harness: detect stalled sessions (no tool calls for N minutes) and resume early, rather than waiting for the full timeout."
+      }
+     ],
+     "summary": "The build is functionally solid: the brief came before the build, MuJoCo was used, the physics checks are meaningful and pass on regrade, and the demo meets the eruption-avoidance requirement. Visual fidelity is the weak point. Water depth isn't visible per lane, the fountains are sphere blobs rather than jets, there is no rain, and the reference compare never shows the cars. The Victorian, trees and wide-view framing are rough approximations of the videos.",
+     "points": {
+      "deliverables": 8.0,
+      "confirmation": 4.0,
+      "rebuild": 4.0,
+      "smoke": 10.0,
+      "task_checks": 4.0,
+      "env_py": 4.0,
+      "visual_check": 3.0,
+      "assets": 3.0
+     }
+    }
+   ],
+   "void": false,
+   "mean_total": 81.0,
+   "n_done": 1,
+   "n": 1
   }
  ]
 }

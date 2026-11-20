@@ -50,6 +50,10 @@ def run_task(task: dict, iter_dir: Path, max_shots: int = 3, judge: bool = True)
         shutil.rmtree(run_dir)
     work.mkdir(parents=True)
     write_json(run_dir / "task.json", task)
+    for rel in task.get("reference_media", []):  # photos/videos the user "attached": work/reference/<name>
+        src = GOLDEN / rel
+        (work / "reference").mkdir(exist_ok=True)
+        shutil.copy2(src, work / "reference" / src.name)
     sid = str(uuid.uuid4())
     t0 = time.time()
     shots, total_cost = [], 0.0

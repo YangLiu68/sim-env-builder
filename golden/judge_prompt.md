@@ -10,7 +10,7 @@ Must have:
 {must_have}
 Task-level checks the user cares about:
 {checks}
-
+{reference}
 ## Materials (read them; paths relative to {run_dir})
 - `shot1_reply.md` - the agent's first answer (should be a confirmation brief, NOT a finished build)
 - `shot2_reply.md` (and `shot3_reply.md` / `resume*_reply.md` if present) - the agent's final report;

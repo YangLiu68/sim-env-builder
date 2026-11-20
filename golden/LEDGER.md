@@ -1,6 +1,6 @@
 # Golden set ledger
 
-Updated 2026-11-10 16:50. Score = auto (0-40) + judge (0-60).
+Updated 2026-11-19 17:53. Score = auto (0-40) + judge (0-60).
 
 | iteration | tasks done | mean score | notes |
 |---|---|---|---|
@@ -9,6 +9,9 @@ Updated 2026-11-10 16:50. Score = auto (0-40) + judge (0-60).
 | iter_03 | 6/6 | 89.8 | playbook v3: full-demo evidence (DEMO_SECONDS), showcase videos, settling at home pose, camera unblocking, salience hint |
 | iter_04 | 6/6 | 91.0 | playbook v4: world.py dynamics hook, fixed thresholds, REPORT.md, simplest-design defaults, env.py reaches goal, workspa |
 | iter_05 | 6/6 | 90.9 | playbook v5 + golden v2 (user states success criteria): box-fit scaling, world.py, task-object occlusion check, FPV fix, |
+| iter_06 | 0/1 | None | BASELINE for reference-video input: task flood_intersection (2 phone videos of a flooded SF intersection), unchanged plu |
+| iter_07 | 0/1 | None | plugin v6: simkit.flood (depth field, wading physics, manhole fountains, storm look), simkit.reference (keyframes, refer |
+| iter_08 | 1/1 | 81.0 | plugin v6.2: v6.1 (tyre priority=1 wet grip, baked LIC water map + foam mound, dashboard UV flip) + Geyser(start=) surpr |
 
 ## iter_01
 
@@ -64,3 +67,21 @@ Updated 2026-11-10 16:50. Score = auto (0-40) + judge (0-60).
 | mars_rover | 90.5 | 40.0 | 50.5 | 2 | PASS | 29.6 | 7.38 | The goal-distance metric changed between the brief and the build. The brief promised the rover would end 'with |
 | quadruped_trail | 90.5 | 40.0 | 50.5 | 2 | PASS | 21.1 | 5.77 | Stair climbability is shown only by geometry measurements and by placing the robot on the landing. The robot n |
 | sd_intersection | 91.5 | 40.0 | 51.5 | 2 | PASS | 26.2 | 6.41 | The tracking/follow camera used in the showcase is blocked in some frames. At about 4.7 s a large green slab ( |
+
+## iter_06
+
+| task | total | auto | judge | shots | smoke | min | $ | top problem |
+|---|---|---|---|---|---|---|---|---|
+| flood_intersection | None | None | None | None | None | 0.0 | None |  |
+
+## iter_07
+
+| task | total | auto | judge | shots | smoke | min | $ | top problem |
+|---|---|---|---|---|---|---|---|---|
+| flood_intersection | None | None | None | None | None | 0.0 | None |  |
+
+## iter_08
+
+| task | total | auto | judge | shots | smoke | min | $ | top problem |
+|---|---|---|---|---|---|---|---|---|
+| flood_intersection | 81.0 | 40.0 | 41.0 | 3 | PASS | 110.5 | 4.05 | Water depth per lane is invisible. All four lanes share the same streaked brown texture and colour, so a viewe |

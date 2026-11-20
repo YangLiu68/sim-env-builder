@@ -86,6 +86,9 @@ def agent_env(base: dict | None = None) -> tuple[dict, str]:
     """Environment + model name for a headless claude process under the active provider."""
     env = dict(base if base is not None else os.environ)
     env.pop("CLAUDECODE", None)  # allow nesting a fresh claude under this session
+    # zero-context agents: the run dirs live inside this repo, so Claude Code would otherwise load the
+    # repo owner's auto-memory (language preference, notes about this harness) into every agent
+    env["CLAUDE_CODE_DISABLE_AUTO_MEMORY"] = "1"
     env.setdefault("SIMENV_HOME", str(Path.home() / ".cache/sim-env-builder"))
     model = MODEL
     if provider() == "openrouter":
@@ -126,6 +129,9 @@ def mcp_config_for(plugin: Path) -> Path:
     return cfg
 
 
+ISOLATION_SETTINGS = '{"autoMemoryEnabled": false}'  # no auto-memory in harness agents (see agent_env)
+
+
 def agent_cmd(prompt: str, session_id: str, resume: bool, tools: str | None = None, extra: list[str] | None = None,
               plugin: Path | None = None, model: str | None = None) -> list[str]:
     plugin = Path(plugin or PLUGIN)
@@ -134,6 +140,7 @@ def agent_cmd(prompt: str, session_id: str, resume: bool, tools: str | None = No
            "--plugin-dir", str(plugin),
            "--mcp-config", str(mcp_config_for(plugin)), "--strict-mcp-config",
            "--setting-sources", "project",
+           "--settings", ISOLATION_SETTINGS,
            "--no-chrome",
            "--dangerously-skip-permissions",
            "--disallowedTools", "AskUserQuestion",

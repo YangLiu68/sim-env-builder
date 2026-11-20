@@ -113,3 +113,93 @@ Scores: factory_sorting 93, robot_soccer 90.5, mars_rover 88.5, isaac_synthetic 
   examiner no longer flags cloth particles as tiny masses.
 - isaac_synthetic retest 91.5 (was 86). ASSETS.md lists rejected Poly Pizza candidates with reasons.
 - quadruped_trail retest 90.5 (was 89). Hand-summed check counts again -> smoke writes summary_line to paste; terrain edge_blend tapers the tile border (no cliff into the void); stairs need a physical climbability probe; 3-4 distinct models for repeated categories.
+
+## Iteration 6 / 7: reference media + water on land (2026-11-19)
+New golden task `flood_intersection` (self-driving / reference-video): the user hands over two phone
+videos of a flooded SF intersection (water of uneven depth, three erupting manholes, a robotaxi,
+parked road rollers) and asks for that scene as a test environment. Media live in
+`golden/reference/flood_intersection/` (third-party, gitignored); the harness copies a task's
+`reference_media` into the agent's `work/reference/` and gives the judge a keyframe sheet
+(`reference_frames.jpg`) to grade fidelity against.
+- Harness isolation bug: since the repo became a git repo, `claude -p` in `golden/runs/*/work`
+  resolved to the repo's project and loaded the owner's auto-memory (language preference, notes on
+  this harness) into "zero-context" agents (first iter_06 attempt answered in Chinese). iter_02-05
+  were clean (each work dir was its own project then). Fix: `--settings {"autoMemoryEnabled": false}`
+  + `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` for agents, judge and dashboard runs; the contaminated
+  attempt was stopped and re-run.
+- iter_06 = baseline: unchanged plugin v5 on the new task. iter_07 = plugin v6:
+  - `simkit.flood`: declarative depth field (bands, pools, shoreline taper) stored inside scene.xml;
+    `FloodWorld` per-step physics (quarter-footprint buoyancy, immersed-area drag vs current,
+    wet-grip tyre friction, manhole jets rho*A*v^2), textured flowing water, foam mounds, bow waves,
+    `storm_look` (grey sky, fog); check helpers `coast_test`, `fountain_uplift`, `wheel_load`,
+    `find_spot`. Pre-flight: coasting decel 0.04 / 0.42 / 1.5 m/s^2 dry / 0.10 m / 0.35 m;
+    jet uplift measured from contacts = predicted; tyre load 9 % of weight at 0.6 m (cars float).
+  - `simkit.reference`: keyframes + labelled sheet from photos/videos; `compare` renders a camera at
+    the media's aspect ratio next to a frame (+ 50 % overlay); smoke writes
+    `smoke/reference_compare.png` from `reference/match.json`; visual-check item 10.
+  - Renderers honour scene fog (`simkit_fog`), off during segmentation; layout/visibility checks
+    skip water and foam; Scene gets `custom()`, sky "storm", ground "wet_asphalt".
+  - Playbook: Phase 2 step 0 (media are the spec), reference/reference_media.md, reference/water.md.
+  - Dashboard viewer: textured meshes export their UVs (flood water no longer flat-coloured).
+
+### iter_06 / iter_07 runs: stopped by the OS (low memory), briefs + builds usable
+Both build turns were stopped ~8 min in (the machine was short of memory; other heavy jobs were
+running), after each agent had built, smoke-tested and (v6) rendered `reference_compare.png`, before
+grading/judging. No scores. What they showed:
+- Brief (shot 1): v6 read the media into a layout sketch with counts, two matched cameras, stated
+  approximations, and a depth plan that makes "shallowest passable lane" a real decision (0.15 /
+  0.25 / 0.4 m); v5 read the media too but proposed one uniform 18 cm sheet and wrote its own
+  camera-fitting/compare scripts.
+- v6 build: 11 task checks, all passing (re-run against plugin v6.1 below: still all pass); the
+  camera overlay lines up horizon, park edge, signal and bollard with the video.
+- The agent patched its simkit copy: car tyres `priority="1"`. Without it MuJoCo uses
+  max(tyre, road) friction, so FloodWorld's wet grip (0.715) never reached the contact (1.0): the
+  "water makes the road slippery" physics was silently off. Also `wheelbase`/`track`/`extra_xml`.
+- reference_compare showed the fountains as stacks of white "cotton" ellipsoids and the water as
+  uniform tiled streaks.
+
+### Plugin v6.1 (from those runs)
+- `robots.car`: tyres `priority="1"` (wet grip / ice now reach the contact), `wheelbase`, `track`,
+  `extra_xml`; test asserts the contact friction drops in deep water (fails without priority).
+- `simkit.flood` visuals: one non-tiling texture baked per spec (line-integral convolution of noise
+  along the actual flow field incl. fountain outflow; deeper = darker; ragged foam around manholes
+  and downstream plumes; waterline foam); fountains = low lumpy matte mound (width ~2.5x jet height)
+  + small surface blobs that bob instead of float. Re-rendered the v6 agent's scene with it.
+- Dashboard: mesh UV v flipped for three.js (non-tiling maps were mirrored), 1024 px texture cap.
+- water.md: visuals, tyre priority for hand-made vehicles.
+
+### Plugin v6.2: pass a fountain instead of stopping in front of it (owner request)
+The robotaxi in the videos sat in the water next to an erupting manhole; the owner wants the
+opposite behaviour demonstrated and generated.
+- `Geyser(start=, ramp=)`: a manhole that erupts at a given time (dormant = no jet, no outflow, no
+  baked foam, mound/blobs sunk), `Geyser.active(t)`: what a driver can see.
+- `flood.pass_fountain(spec, gz, route_pt, heading, ...)`: picks the side to pass on: inside the
+  kerbs, depth under the whole car < safe depth along the swept swerve, clear of parked cars and of
+  moving cars checked in time (a car that will have left does not block); reports why each side
+  was rejected; `offset=None` -> stop before the water. `flood.swerve_path` -> waypoints.
+- Demo on the v6 agent's scene: eruption 24 m ahead in the park-side lane. "Stop and wait":
+  11 s stopped in the water. "Detour": 0 s stopped, min speed 3.0 m/s, max depth under the car
+  0.26 m (safe 0.30), no contacts, passes on the right (left blocked by the kerb).
+- Found on the way: the agent's lane planner treated every fountain in the spec as known, so a
+  dormant manhole blocked lanes; water.md now says to plan from `gz.active(t)` only.
+- Golden task `flood_intersection`: the user reply now asks for this behaviour; +1 must-have,
+  +1 check ("passes an erupting fountain without stopping, keeps clear of it").
+- Tests: delayed eruption + pass_fountain (kerb, depth, moving/staying cars, not-in-the-way).
+
+### iter_08: plugin v6.2 on `flood_intersection` -> 81.0 (auto 40, judge 41), 3 shots
+Single task, parallel 1 (the machine was shared with other heavy jobs).
+- Detour generated without help: the agent used `Geyser(start=17.6)` + `pass_fountain`/
+  `swerve_path`, planned only from `gz.active(t)`, and wrote a 4-rollout check (varied start,
+  speed, eruption time). Independent re-simulation of its unmodified code: eruption seen 23.9 m
+  ahead, passes on the right (left = road edge), 0 s stopped in water, min speed 4.65 m/s, max
+  depth under the footprint 0.18 m (safe 0.35), body >= 1.05 m from the fountain's foam radius,
+  no contacts. Regrade: rebuild identical, smoke PASS, 10/10 task checks.
+- Shot 2 hit the 90 min limit while its final smoke run was still rendering (wall clock, not a
+  stall: the agent was waiting on simkit.smoke under heavy CPU load). The canned "please finish"
+  shot 3 completed it -> shots_used 3.
+- Judge (alignment 8, completeness 7, assets 7, visual 5, physics 8). Open items, all visual:
+  water depth per lane not visible (one uniform texture); fountains read as white sphere piles,
+  not frothy domes/jets; reference_compare renders at t=1 s (no cars in frame) and the wide view
+  is pitched too high; Victorian = flat box, one tree species, west queue missing; blotchy
+  "puddle" reflections on the dry road. Physics notes: flow-push check passes by 12% after
+  tuning; fountain-uplift check compares the force with the model's own prediction.

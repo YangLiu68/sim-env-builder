@@ -1,6 +1,6 @@
 {
  "version": 2,
- "notes": "Golden set for the sim-env-builder skill. 'prompt' is the user's first message (shot 1). 'user_reply' is what the simulated user answers to the confirmation brief (shot 2); it states preferences broadly so it answers whatever the agent asks. 'must_have' and 'checks' are for the judge. tier core = run every iteration; extended = rotated in. v2 (2026-11-10): the simulated user now states the 'checks' success criteria in user_reply, so the judge no longer grades agents on criteria they could not see.",
+ "notes": "Golden set for the sim-env-builder skill. 'prompt' is the user's first message (shot 1). 'user_reply' is what the simulated user answers to the confirmation brief (shot 2); it states preferences broadly so it answers whatever the agent asks. 'must_have' and 'checks' are for the judge. tier core = run every iteration; extended = rotated in. v2 (2026-11-10): the simulated user now states the 'checks' success criteria in user_reply, so the judge no longer grades agents on criteria they could not see. reference_media (2026-11-19): paths under golden/ copied into the agent's work/reference/ before shot 1; the judge gets a keyframe sheet (reference_frames.jpg) and grades fidelity to it.",
  "tasks": [
   {
    "id": "sd_intersection",
@@ -339,6 +339,39 @@
    "checks": [
     "joint limits respected",
     "no self-penetration explosion"
+   ]
+  },
+  {
+   "id": "flood_intersection",
+   "category": "self-driving / reference-video",
+   "tier": "extended",
+   "reference_media": [
+    "reference/flood_intersection/oak_flood_1.mp4",
+    "reference/flood_intersection/oak_flood_2.mp4"
+   ],
+   "prompt": "San Francisco just got a huge storm and the intersection outside my window flooded (Oak Street along the Panhandle). Manholes were blowing water up like little fountains and cars, including a robotaxi, were trying to get through. I saved two phone videos of it in ./reference/ (oak_flood_1.mp4 is 24 s, oak_flood_2.mp4 is 3 minutes). Build me a simulation environment that recreates this scene as closely as you can for self-driving testing: same layout and camera view as the videos, the flood water, the manhole fountains, the parked construction equipment, other cars, and a robotaxi as the ego car I can control.",
+   "user_reply": "Looks right. MuJoCo is fine. Approximate water physics is fine as long as it is physically plausible: the water is deeper in some lanes than in others, it slows a car more the deeper it is, grip drops in deep water, the flow pushes cars sideways a little, and a manhole fountain pushes up on a car that drives over it. Demo: the robotaxi approaches the intersection, picks the shallowest passable lane and drives through without stopping in the flooded section; a couple of NPC cars drive through too. In the videos the robotaxi just sat in the water next to a fountain; I want the opposite: while it is driving through, make a manhole erupt in its lane a little ahead of it, and have it go around the fountain on a side it can safely drive through instead of stopping and waiting. Add a camera from the same upper-floor vantage point as the videos. Use your defaults for everything else and build it. Please make sure these hold, with a check for each: the ego never enters water deeper than its safe wading depth; the ego does not stop inside the flooded section; drag slows a car more in deeper water; a manhole fountain pushes up on a car above it; when a fountain erupts in its path the ego passes it without stopping and without touching it.",
+   "expected_backend": "mujoco",
+   "must_have": [
+    "street corner matching the videos: multi-lane street along a park (lawn, tall trees, path) with a cross street, corner building at the camera position",
+    "traffic signals on poles and a street light",
+    "flood water over the intersection whose depth visibly differs across lanes",
+    "2-3 manhole fountains (visible water jets) in the intersection, one large one near the camera corner",
+    "construction equipment (road roller) parked at the corner, partly in the water, and a traffic cone",
+    "NPC cars, some driving through the water",
+    "white robotaxi ego car with a roof sensor, steering/throttle/brake",
+    "demo: ego picks the shallowest passable lane and drives through without stopping",
+    "demo: a manhole erupts in the ego's lane ahead of it; the ego steers around it on a passable side without stopping, then continues",
+    "overcast rainy look: grey sky, haze/fog, wet road",
+    "a named camera from the upper-floor vantage point that roughly reproduces the videos' framing",
+    "water physics in world.py: depth-dependent drag, reduced grip, flow push, fountain uplift"
+   ],
+   "checks": [
+    "the ego never enters water deeper than its safe wading depth",
+    "the ego does not stop inside the flooded section",
+    "drag slows a car more in deeper water",
+    "a manhole fountain pushes up on a car above it",
+    "when a fountain erupts in its path, the ego passes it without stopping and keeps clear of it"
    ]
   }
  ]
