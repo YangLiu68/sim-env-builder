@@ -19,6 +19,7 @@ CC0 models need no attribution; CC-BY models are credited here as their licence 
 - "Desert boulder" by Leigh Garland (CC-BY 3.0 https://creativecommons.org/licenses/by/3.0/) via Poly Pizza https://poly.pizza/m/dJvxGOx16m0
 - "Distant Building 03" by Jarlan Perez (CC-BY 3.0 https://creativecommons.org/licenses/by/3.0/) via Poly Pizza https://poly.pizza/m/7zyZfQrt3ZP
 - "Dock Long No Rope" by Quaternius (CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/) via Poly Pizza https://poly.pizza/m/ix2wcFtQ8G
+- "Dumpster" by Quaternius (CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/) via Poly Pizza https://poly.pizza/m/PKsbolkZSr
 - "Forklift" by KolosStudios (CC-BY 3.0 https://creativecommons.org/licenses/by/3.0/) via Poly Pizza https://poly.pizza/m/DTQBuenKJY
 - "Lab Desk" by Colonel Cthulu (CC-BY 3.0 https://creativecommons.org/licenses/by/3.0/) via Poly Pizza https://poly.pizza/m/6KxaD6I6I48
 - "Lamp Post" by Emmett “TawpShelf” Baber (CC-BY 3.0 https://creativecommons.org/licenses/by/3.0/) via Poly Pizza https://poly.pizza/m/aHStW75CzDY
@@ -32,6 +33,7 @@ CC0 models need no attribution; CC-BY models are credited here as their licence 
 - "Orange" by Poly by Google (CC-BY 3.0 https://creativecommons.org/licenses/by/3.0/) via Poly Pizza https://poly.pizza/m/eHa7TT-gRUa
 - "Pallet" by Quaternius (CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/) via Poly Pizza https://poly.pizza/m/cUAsYHDqfD
 - "Park Bench" by J-Toastie (CC-BY 3.0 https://creativecommons.org/licenses/by/3.0/) via Poly Pizza https://poly.pizza/m/kn0sMwbspb
+- "Pickup Truck" by Quaternius (CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/) via Poly Pizza https://poly.pizza/m/qn4grQgHm8
 - "Pine tree" by Poly by Google (CC-BY 3.0 https://creativecommons.org/licenses/by/3.0/) via Poly Pizza https://poly.pizza/m/fCT73jIf5jN
 - "Plate" by Poly by Google (CC-BY 3.0 https://creativecommons.org/licenses/by/3.0/) via Poly Pizza https://poly.pizza/m/9RpiicivMJi
 - "Police Car" by Quaternius (CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/) via Poly Pizza https://poly.pizza/m/BwwnUrWGmV
@@ -48,6 +50,7 @@ CC0 models need no attribution; CC-BY models are credited here as their licence 
 - "Soccer goal" by Poly by Google (CC-BY 3.0 https://creativecommons.org/licenses/by/3.0/) via Poly Pizza https://poly.pizza/m/7t4hmicGHV4
 - "Sofa" by Quaternius (CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/) via Poly Pizza https://poly.pizza/m/vuo7KBehok
 - "Space Lander Base" by Kay Lousberg (CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/) via Poly Pizza https://poly.pizza/m/TgOY580aMy
+- "Sports Hatchback" by ReppenThe303 (CC-BY 3.0 https://creativecommons.org/licenses/by/3.0/) via Poly Pizza https://poly.pizza/m/DobtD8JyoW
 - "TV" by Jarlan Perez (CC-BY 3.0 https://creativecommons.org/licenses/by/3.0/) via Poly Pizza https://poly.pizza/m/2flJebZTUrg
 - "Table" by Hunter Paramore (CC-BY 3.0 https://creativecommons.org/licenses/by/3.0/) via Poly Pizza https://poly.pizza/m/7qAyGZnerYt
 - "Taxi" by Quaternius (CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/) via Poly Pizza https://poly.pizza/m/x43lOScTpN
