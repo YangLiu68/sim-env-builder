@@ -22,6 +22,10 @@ from .physics_exam import chk, ground_geom
 from .render import body_label, geom_world_aabbs, top_level_body
 
 
+# simkit.flood water/foam and plain water sheets; not "water_bottle"
+WATERLIKE = re.compile(r"^(geom:)?(flood_\w*|water|water_?(surface|sheet|plane)\w*|puddle\w*)$", re.I)
+
+
 def objects(model, data):
     """{label: {"geoms": [...], "lo", "hi", "static": bool}}"""
     ab = geom_world_aabbs(model, data)
@@ -46,6 +50,9 @@ def objects(model, data):
         o["static"] = b == 0 or not any(model.body_dofnum[x] > 0 for x in range(model.nbody) if top_level_body(model, x) == b)
         ext = o["hi"] - o["lo"]
         o["flat"] = ext[2] < 0.06 and ext[0] * ext[1] > 1.0  # roads, rugs, paint, water sheets
+    for key, o in objs.items():  # water surfaces and fountain foam (simkit.flood) are ground-like, not props
+        if WATERLIKE.search(key):
+            o["flat"] = True
     return objs
 
 

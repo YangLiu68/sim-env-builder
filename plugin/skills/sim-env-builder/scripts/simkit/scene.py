@@ -2,15 +2,15 @@
 
     from simkit.scene import Scene, lookat
     sc = Scene("kitchen", timestep=0.002)
-    sc.ground(size=20, style="tiles")             # plane + texture; style: grid|tiles|asphalt|grass|sand|concrete|wood|water|moon
-    sc.sky("day")                                  # day|dusk|night|studio|space
+    sc.ground(size=20, style="tiles")             # plane + texture; style: grid|tiles|asphalt|wet_asphalt|grass|sand|concrete|wood|water|moon
+    sc.sky("day")                                  # day|dusk|night|studio|space|storm
     sc.add_asset(mug_asset)                        # simkit.assets.MjAsset or raw XML string
     sc.body('<body name="table" pos="0 0 0">...</body>')
     sc.camera("overview", pos=(3, -3, 2.5), target=(0, 0, 0.8))
     sc.actuator('<motor name="m1" joint="j1" gear="1" ctrlrange="-1 1"/>')
     sc.write("scene.xml")                         # also compiles it once to catch errors early
 
-Every section (default, asset, worldbody, contact, equality, tendon, actuator, sensor, keyframe)
+Every section (default, asset, worldbody, contact, equality, tendon, actuator, sensor, keyframe, custom)
 accepts raw XML so nothing in MJCF is out of reach.
 """
 
@@ -32,6 +32,7 @@ GROUND_STYLES = {
     "wood": ("checker", ".55 .38 .22", ".50 .34 .19", "none", 1.0, 0.05),
     "water": ("flat", ".10 .32 .48", ".12 .36 .52", "random", 0.3, 0.3),
     "moon": ("flat", ".52 .51 .49", ".46 .45 .43", "random", 0.5, 0.0),
+    "wet_asphalt": ("flat", ".15 .15 .16", ".18 .18 .19", "random", 0.5, 0.22),
 }
 SKIES = {
     "day": ("gradient", ".55 .72 .92", ".95 .97 1.0", 0.35, ".5 .5 .5"),
@@ -39,6 +40,7 @@ SKIES = {
     "night": ("gradient", ".02 .03 .08", ".08 .10 .18", 0.15, ".25 .25 .3"),
     "studio": ("gradient", ".78 .80 .84", ".95 .95 .96", 0.4, ".6 .6 .6"),
     "space": ("gradient", "0 0 0", ".02 .02 .05", 0.1, ".7 .7 .7"),
+    "storm": ("gradient", ".52 .55 .58", ".74 .76 .78", 0.9, ".52 .53 .55"),  # overcast rain (simkit.flood.storm_look)
 }
 
 
@@ -78,7 +80,7 @@ class Scene:
         self.offscreen = offscreen
         self.extent = extent
         self.sections: dict[str, list[str]] = {k: [] for k in (
-            "default", "asset", "worldbody", "contact", "equality", "tendon", "actuator", "sensor", "keyframe")}
+            "default", "asset", "worldbody", "contact", "equality", "tendon", "actuator", "sensor", "keyframe", "custom")}
         self._asset_names: set[str] = set()
         self.home: dict[str, float] = {}  # joint name -> value for the auto "home" keyframe
         self.compiler = '<compiler angle="degree" autolimits="true"/>'
@@ -95,7 +97,9 @@ class Scene:
         else:
             self.set_visual("headlight", active="0")
         self.set_visual("rgba", haze=f".8 .85 .9 {haze}")
-        if kind != "space":
+        if kind == "storm":  # overcast: soft, cool, weak shadows
+            self.body('<light name="sun" directional="true" pos="0 0 50" dir="-0.2 -0.15 -1" castshadow="true" diffuse=".42 .43 .45" specular=".15 .15 .15"/>')
+        elif kind != "space":
             self.body('<light name="sun" directional="true" pos="0 0 50" dir="-0.35 -0.25 -1" castshadow="true" diffuse=".75 .72 .68" specular=".2 .2 .2"/>')
         else:
             self.body('<light name="sun" directional="true" pos="0 0 50" dir="-0.6 -0.2 -0.75" castshadow="true" diffuse="1 1 .98"/>')
@@ -156,6 +160,11 @@ class Scene:
 
     def keyframe(self, xml: str):
         self.sections["keyframe"].append(xml)
+        return self
+
+    def custom(self, xml: str):
+        """<custom> entries: <numeric>/<text> data stored in the model (simkit.flood keeps its spec here)."""
+        self.sections["custom"].append(xml)
         return self
 
     def camera(self, name: str, pos, target, fovy: float = 50.0, body: str | None = None, mode: str = "fixed"):

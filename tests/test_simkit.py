@@ -115,3 +115,134 @@ def test_world_dynamics_run_in_examiner(tmp_path):
     z0 = by_name(rep0)["passive_settling"]["status"] if "passive_settling" in by_name(rep0) else None
     assert z0 == "warn"  # without water it falls 1.7 m to the ground
     assert by_name(rep1)["passive_settling"]["status"] == "pass", by_name(rep1)["passive_settling"]  # floats at the waterline
+
+
+# ----------------------------------------------------------------------------- flood + reference media
+def flood_scene(d: Path):
+    from simkit import flood as F
+    from simkit import robots as R
+
+    sc = Scene("flood")
+    F.storm_look(sc)
+    sc.ground(size=60, style="wet_asphalt")
+    spec = F.FloodSpec(regions=[(-25, -8, 25, 8)], depth=0.10, bands=[{"axis": "y", "lo": -8, "hi": -3, "depth": 0.35}],
+                       flow=(0.0, -0.5), geysers=[F.Geyser("mh1", (0.0, 2.0), height=0.8)])
+    F.add_to_scene(sc, spec, env_dir=d, wakes=["ego"])
+    R.car("ego", pos=(-30, 0, 0), mass=2100).add_to(sc)
+    sc.camera("overview", pos=(-14, -20, 9), target=(0, 0, 0))
+    return sc.write(d / "scene.xml")
+
+
+def test_flood_spec_roundtrip_and_depth_field(tmp_path):
+    import mujoco
+    from simkit import flood as F
+
+    m = mujoco.MjModel.from_xml_path(str(flood_scene(tmp_path)))
+    sp = F.FloodSpec.from_model(m)
+    assert sp.geysers[0].name == "mh1" and F.find_vehicles(m) == ["ego"]
+    assert abs(sp.depth_at(0, 0) - 0.10) < 1e-6 and abs(sp.depth_at(0, -5.5) - 0.35) < 1e-6
+    assert sp.depth_at(0, 7.95) < 0.01 and sp.depth_at(0, 20) == 0.0      # shoreline taper, dry outside
+    assert (tmp_path / "assets/procedural/flood_water.png").exists()
+
+
+def test_flood_drag_grows_with_depth_and_dry_is_unaffected(tmp_path):
+    import mujoco
+    from simkit import flood as F
+
+    m = mujoco.MjModel.from_xml_path(str(flood_scene(tmp_path)))
+    w = F.FloodWorld(m)
+    dry = F.coast_test(m, w, "ego", (-35, 0), 0.0, v0=5.0)
+    shallow = F.coast_test(m, w, "ego", (-12, 0.5), 0.0, v0=5.0)
+    deep = F.coast_test(m, w, "ego", (-12, -5.5), 0.0, v0=5.0)
+    assert dry["decel"] < 0.15 < shallow["decel"] and deep["decel"] > 2 * shallow["decel"]
+
+
+def test_flood_buoyancy_unloads_tyres_and_fountain_pushes_up(tmp_path):
+    import mujoco
+    from simkit import flood as F
+
+    m = mujoco.MjModel.from_xml_path(str(flood_scene(tmp_path)))
+    weight = m.body_subtreemass[m.body("ego").id] * 9.81
+    loads = {}
+    for depth in (0.15, 0.6):
+        w = F.FloodWorld(m, F.FloodSpec(regions=[(-100, -100, 100, 100)], depth=depth, edge=0.01), grip=False)
+        d = F._fresh(m)
+        F.place_vehicle(m, d, "ego", 0, 0, 0)
+        for _ in range(1500):
+            w(m, d)
+            mujoco.mj_step(m, d)
+        loads[depth] = F.wheel_load(m, d, "ego") / weight
+    assert loads[0.15] > 0.97 and loads[0.6] < 0.2          # cars float at ~0.6 m of water
+    up = F.fountain_uplift(m, "ego", "mh1")
+    assert up["uplift_N"] > 0.8 * up["jet_force_predicted_N"] > 500
+
+
+def test_flood_world_is_reset_safe_and_keeps_dry_friction(tmp_path):
+    import mujoco
+    from simkit import flood as F
+
+    m = mujoco.MjModel.from_xml_path(str(flood_scene(tmp_path)))
+    tire = m.geom("ego_fl_tire").id
+    mu = float(m.geom_friction[tire, 0])
+    for _ in range(3):  # several worlds on one model (examiner rollouts) must not compound the wet-grip factor
+        w = F.FloodWorld(m)
+        d = F._fresh(m)
+        F.place_vehicle(m, d, "ego", 0, -5.5, 0)
+        w(m, d)
+    assert abs(m.geom_friction[tire, 0] - mu * (1 - 0.35)) < 1e-6
+    # the CONTACT uses the wet tyre friction (tyres have priority; MuJoCo would otherwise take the
+    # max with the ground's 1.0 and the water would not make the road slippery at all)
+    for _ in range(50):
+        w(m, d)
+        mujoco.mj_step(m, d)
+    tyre_mu = [d.contact[i].friction[0] for i in range(d.ncon) if tire in (d.contact[i].geom1, d.contact[i].geom2)]
+    assert tyre_mu and max(tyre_mu) < 0.8
+
+
+def test_flood_delayed_eruption_and_pass_fountain():
+    import math
+
+    import numpy as np
+    from simkit import flood as F
+
+    sp = F.FloodSpec(regions=[(-40, -9, 30, 9)], depth=0.26, blend=1.2,
+                     bands=[{"axis": "y", "lo": 3.4, "hi": 20, "depth": 0.14}, {"axis": "y", "lo": -60, "hi": -3.6, "depth": 0.42}],
+                     geysers=[F.Geyser("mh", (-2.0, 5.1), radius=1.1, start=9.0)])
+    g = sp.geysers[0]
+    assert g.strength(8.9) == 0 and not g.active(8.9) and g.active(9.5) and g.jet_force(5.0) == 0
+    assert np.allclose(sp.flow_at(-2.0, 7.0, 5.0), 0)                    # dormant: no outflow either
+    kw = dict(half_width=1.03, safe_depth=0.3, lateral_limits=(-9 + 0.3 - 4.95, 9 - 0.3 - 4.95))
+    route = ((-30.0, 4.95), (1.0, 0.0))
+    pl = F.pass_fountain(sp, g, *route, **kw)
+    assert pl["side"] == "right" and pl["candidates"][0]["blocked"] == "road edge" and pl["max_depth"] < 0.3
+    path = F.swerve_path(*route, pl, 0.0, 60.0, 1.0)
+    assert min(math.hypot(x + 2.0, y - 5.1) for x, y in path) >= pl["keep"] - 0.05
+    assert path[0][1] == 4.95 and path[-1][1] == 4.95                    # back in the lane after it
+    assert F.pass_fountain(sp, g, *route, **{**kw, "safe_depth": 0.2})["offset"] is None   # too deep: stop
+    leaving = [(-15.0, 1.5, 0.0, -4.0, 3.0)]                               # gone before we get there
+    staying = [(-2.0, 2.0, 0.0, 0.0, 3.0)]                                 # stopped right where we would pass
+    assert F.pass_fountain(sp, g, *route, movers=leaving, speed=3.5, **kw)["offset"] is not None
+    assert F.pass_fountain(sp, g, *route, movers=staying, speed=3.5, **kw)["offset"] is None
+    assert F.pass_fountain(sp, g, (-30.0, -1.65), (1.0, 0.0), **kw) is None   # not in the way
+
+
+def test_flood_scene_passes_smoke_layout_and_reference_compare(tmp_path):
+    import json as _json
+
+    from PIL import Image
+    from simkit import smoke
+
+    scene = flood_scene(tmp_path)
+    (tmp_path / "world.py").write_text("import sys\nfrom pathlib import Path\nsys.path.insert(0, %r)\n"
+                                       "from simkit import flood as F\n\ndef make_world(model):\n    return F.FloodWorld(model)\n" % str(SCRIPTS))
+    (tmp_path / "reference/frames").mkdir(parents=True)
+    Image.new("RGB", (360, 640), (120, 110, 100)).save(tmp_path / "reference/frames/ref.jpg")
+    (tmp_path / "reference/match.json").write_text(_json.dumps([{"camera": "overview", "frame": "reference/frames/ref.jpg"}]))
+    rep = smoke.run(scene, tmp_path / "smoke", seconds=2.0, showcase=False)
+    assert rep["verdict"] in ("PASS", "PASS_WITH_WARNINGS"), rep["failed_checks"]
+    phys = _json.loads((tmp_path / "smoke/physics_report.json").read_text())
+    flagged = [c for c in phys["checks"] if c["group"] == "layout" and c["status"] != "pass" and "flood" in _json.dumps(c["value"])]
+    assert not flagged, flagged                                   # water + foam are not "floating props"
+    im = Image.open(tmp_path / "smoke/reference_compare.png")
+    assert im.size[1] > im.size[0] / 3 * 1.5                       # portrait tiles kept their aspect
+    assert "reference_compare.png" in (tmp_path / "smoke/SMOKE.md").read_text()

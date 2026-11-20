@@ -67,6 +67,9 @@ def render(env_dir, out=None, seconds=10.0, controller=None, scene="scene.xml", 
     d = mujoco.MjData(m)
     reset(m, d)
     r = mujoco.Renderer(m, H, W)
+    from .render import apply_model_flags
+
+    apply_model_flags(r, m)
     opt = mujoco.MjvOption()
     for i in range(6):
         opt.geomgroup[i] = 1 if i <= 2 else 0

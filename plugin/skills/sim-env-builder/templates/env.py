@@ -92,6 +92,12 @@ class SimEnv(_Base):
             self.model.vis.global_.offwidth = max(self.model.vis.global_.offwidth, self.width)
             self.model.vis.global_.offheight = max(self.model.vis.global_.offheight, self.height)
             self._renderer = mujoco.Renderer(self.model, self.height, self.width)
+            try:  # fog etc. the scene asks for (simkit.flood.storm_look)
+                from simkit.render import apply_model_flags
+
+                apply_model_flags(self._renderer, self.model)
+            except ImportError:
+                pass
         cam = CAMERA if CAMERA is not None else -1
         self._renderer.update_scene(self.data, camera=cam)
         return self._renderer.render()

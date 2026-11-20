@@ -164,13 +164,27 @@ def image_stats(img: np.ndarray) -> dict:
     return st
 
 
+def model_wants_fog(model) -> bool:
+    """Scenes opt in with <custom><numeric name="simkit_fog" data="1"/> (simkit.flood.storm_look)."""
+    i = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_NUMERIC, "simkit_fog")
+    return i >= 0 and float(model.numeric_data[model.numeric_adr[i]]) > 0
+
+
+def apply_model_flags(renderer, model):
+    """Render flags the model asks for (fog). Call once after creating a mujoco.Renderer."""
+    if model_wants_fog(model):
+        renderer.scene.flags[mujoco.mjtRndFlag.mjRND_FOG] = 1
+    return renderer
+
+
 class Views:
     def __init__(self, model, width=960, height=540):
         self.model = model
         model.vis.global_.offwidth = max(model.vis.global_.offwidth, width)
         model.vis.global_.offheight = max(model.vis.global_.offheight, height)
         self.w, self.h = width, height
-        self.r = mujoco.Renderer(model, height, width)
+        self.r = apply_model_flags(mujoco.Renderer(model, height, width), model)
+        self.fog = model_wants_fog(model)
         self.opt = mujoco.MjvOption()
         # show visual groups 0-2 (simkit puts visual meshes in group 2), hide collision group 3
         for i in range(6):
@@ -190,12 +204,14 @@ class Views:
                 opt.geomgroup[i] = 1
         if segmentation:
             self.r.enable_segmentation_rendering()
+            self.r.scene.flags[mujoco.mjtRndFlag.mjRND_FOG] = 0  # fog would tint the object-id colours
         try:
             self.r.update_scene(data, camera=camera, scene_option=opt)
             return self.r.render().copy()
         finally:
             if segmentation:
                 self.r.disable_segmentation_rendering()
+                self.r.scene.flags[mujoco.mjtRndFlag.mjRND_FOG] = int(self.fog)
 
     def auto_views(self, data, max_robots=3) -> dict:
         """Free cameras framing the scene: overview (iso), top, front, side + closeups of robots."""

@@ -140,7 +140,8 @@ class QuadrotorController:
 # =========================================================================== car
 
 def car(name="car", pos=(0, 0, 0), yaw_deg=0.0, length=4.5, width=1.8, mass=1300.0, wheel_radius=0.33,
-        visual_xml: str = "", color=(0.15, 0.35, 0.75, 1), max_steer_deg=35.0, max_torque=600.0, max_brake=1500.0) -> Robot:
+        visual_xml: str = "", color=(0.15, 0.35, 0.75, 1), max_steer_deg=35.0, max_torque=600.0, max_brake=1500.0,
+        wheelbase: float | None = None, track: float | None = None, extra_xml: str = "") -> Robot:
     """Rear-wheel-drive car with Ackermann-ish steering (both front knuckles share one target).
 
     Actuators: ``{name}_steer_l/_r`` (position, rad), ``{name}_drive_l/_r`` (motor, N*m at the
@@ -149,9 +150,15 @@ def car(name="car", pos=(0, 0, 0), yaw_deg=0.0, length=4.5, width=1.8, mass=1300
     Use CarController or set ctrl directly. Front faces +x. ``visual_xml`` replaces
     the default box body (put a Poly Pizza car mesh there; chassis bottom is at z = 0.1 in body
     frame when wheels touch the ground, so place meshes with ``pos="0 0 0"`` if they were
-    converted with origin="base" and the body origin is at ground level).
+    converted with origin="base" and the body origin is at ground level). ``wheelbase``/``track``
+    (m) put the physics wheels under a mesh's wheels (default 0.6*length, 0.84*width);
+    ``extra_xml`` is appended inside the car body (sensor domes, lidar sites, extra cameras).
+    Tyres carry priority="1": their friction is THE tyre-road friction (MuJoCo otherwise takes the
+    max of both geoms), so a world.py that lowers tyre friction (wet road, ice, simkit.flood) works.
     """
-    r, wb, tw = wheel_radius, length * 0.6, width * 0.84
+    r = wheel_radius
+    wb = wheelbase if wheelbase is not None else length * 0.6   # match a mesh body's wheels when given
+    tw = track if track is not None else width * 0.84
     zc = r  # body origin at ground level; wheel centres at z = r
     c = _v(color)
     look = visual_xml or (
@@ -160,7 +167,7 @@ def car(name="car", pos=(0, 0, 0), yaw_deg=0.0, length=4.5, width=1.8, mass=1300
         f'<geom type="box" size="{length * 0.245:.3f} {width / 2 * 0.93:.3f} 0.17" pos="{-length * 0.06:.3f} 0 {r + 0.64:.3f}" rgba="0.5 0.65 0.75 0.7" contype="0" conaffinity="0" group="2" mass="0"/>')
     def wheel(tag, x, y, steer):
         wgeom = (f'<geom name="{name}_{tag}_tire" type="cylinder" size="{r} 0.11" euler="90 0 0" rgba="0.08 0.08 0.08 1" mass="18" '
-                 f'friction="1.1 0.01 0.001" condim="3" solref="0.01 1"/>'
+                 f'friction="1.1 0.01 0.001" condim="3" solref="0.01 1" priority="1"/>'
                  f'<geom type="cylinder" size="{r * 0.6:.3f} 0.112" euler="90 0 0" rgba="0.7 0.7 0.72 1" contype="0" conaffinity="0" group="2" mass="0"/>')
         spin = f'<joint name="{name}_{tag}_spin" type="hinge" axis="0 1 0" damping="0.5" armature="0.5"/>'
         if steer:
@@ -176,7 +183,7 @@ def car(name="car", pos=(0, 0, 0), yaw_deg=0.0, length=4.5, width=1.8, mass=1300
             + wheel("rl", -wb / 2, tw / 2, False) + wheel("rr", -wb / 2, -tw / 2, False)
             + f'<site group="4" name="{name}_imu" pos="0 0 {r + 0.3:.3f}"/>'
             + f'<camera name="{name}_driver" pos="{length * 0.1:.2f} 0.35 {r + 0.85:.2f}" xyaxes="0 -1 0 0 0 1" fovy="75"/>'
-            + f'<camera name="{name}_chase" pos="{-length * 1.6:.2f} 0 {r + 2.2:.2f}" xyaxes="0 -1 0 0.35 0 0.94" fovy="60"/></body>')
+            + f'<camera name="{name}_chase" pos="{-length * 1.6:.2f} 0 {r + 2.2:.2f}" xyaxes="0 -1 0 0.35 0 0.94" fovy="60"/>{extra_xml}</body>')
     ms = math.radians(max_steer_deg)
     acts = [f'<position name="{name}_steer_{s}" joint="{name}_f{s[0]}_steer" kp="3000" kv="100" ctrlrange="-{ms:.3f} {ms:.3f}"/>' for s in ("l", "r")]
     acts += [f'<motor name="{name}_drive_{s}" joint="{name}_r{s[0]}_spin" gear="1" ctrlrange="-{max_torque} {max_torque}"/>' for s in ("l", "r")]

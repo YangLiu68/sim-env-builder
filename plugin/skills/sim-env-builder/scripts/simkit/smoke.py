@@ -48,6 +48,8 @@ VISUAL_CHECKLIST = """\
 | 8 | Collision sheet: do colliders roughly match the visible shapes? | |
 | 9 | Would the user say this matches their request? What is missing? | |
 """
+REFERENCE_ITEM = ("| 10 | reference_compare.png: does the scene match the user's photos/videos (layout, which side things "
+                  "are on, object counts and sizes, viewpoint, weather/light)? List every visible mismatch. | |\n")
 
 
 def parse_size(s):
@@ -119,7 +121,8 @@ def run(scene, out, controller=None, task_checks=None, seconds=4.0, size=(960, 5
         cams = dict(auto)
         cams.update(v.named_cameras())
         vis = v.visibility(data, cams)
-        bodies = sorted({body_label(model, b) for b in range(1, model.nbody) if model.body_parentid[b] == 0})
+        bodies = sorted({body_label(model, b) for b in range(1, model.nbody) if model.body_parentid[b] == 0}
+                        - {body_label(model, b) for b in range(1, model.nbody) if (mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_BODY, b) or "").startswith("flood_")})
         unseen = [b for b in bodies if vis.get(b, 0) < 30]
         rend["visibility_pixels"] = dict(sorted(vis.items(), key=lambda kv: -kv[1])[:60])
         rend["unseen_objects"] = unseen
@@ -232,6 +235,15 @@ def run(scene, out, controller=None, task_checks=None, seconds=4.0, size=(960, 5
 
         rend["ok"] = False
         rend["error"] = f"{e!r}\n{traceback.format_exc()[-1500:]}"
+    # ---------------- reference media: the user's photo/video viewpoint vs the matching camera
+    if (Path(scene).resolve().parent / "reference" / "match.json").exists():
+        try:
+            from .reference import compare_from_match
+
+            p = compare_from_match(Path(scene).resolve().parent, out / "reference_compare.png", controller=controller)
+            rend["reference_compare"] = str(p)
+        except Exception as e:  # noqa: BLE001
+            rend.setdefault("problems", []).append(f"reference compare failed: {e!r}")
     # ---------------- showcase video (orbit + demo controller + every camera) for people to watch
     if showcase:
         try:
@@ -288,7 +300,10 @@ def write_md(out, report, phys, rend):
         lines.append(f"- `{n}`: mean {st['mean']}, std {st['std']}, edges {st['edge_density']} {'OK' if st['ok'] else 'PROBLEM: ' + ', '.join(st['problems'])}")
     if rend.get("unseen_objects"):
         lines.append(f"- never visible: {rend['unseen_objects'][:20]}")
-    lines += ["", "Images to inspect: `contact_sheet.png`, `filmstrip.png`, `collision_sheet.png`, `renders/`.", "", VISUAL_CHECKLIST]
+    ref = bool(rend.get("reference_compare"))
+    lines += ["", "Images to inspect: `contact_sheet.png`, `filmstrip.png`, `collision_sheet.png`, `renders/`"
+              + (", `reference_compare.png` (reference media vs your camera)" if ref else "") + ".", "",
+              VISUAL_CHECKLIST + (REFERENCE_ITEM if ref else "")]
     (out / "SMOKE.md").write_text("\n".join(lines) + "\n")
 
 

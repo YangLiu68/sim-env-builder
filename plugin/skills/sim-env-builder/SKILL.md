@@ -1,6 +1,6 @@
 ---
 name: sim-env-builder
-description: Build a 3D simulated environment (robotics / RL / autonomy scenes - self-driving streets, robot arms, drones, legged robots, warehouses, homes, farms, marine, space, sports, multi-agent) in MuJoCo or NVIDIA Isaac Sim from a description. Chooses the backend, confirms the spec with the user, sources 3D models from Poly Pizza (polypizza MCP) with procedural fallbacks, builds a tested scene + Gym-style env, and smoke-tests rendering, visuals and physics. Use whenever the user asks to create, generate, build or set up a simulation environment, sim scene, virtual world, RL/robot environment or digital twin.
+description: Build a 3D simulated environment (robotics / RL / autonomy scenes - self-driving streets, robot arms, drones, legged robots, warehouses, homes, farms, marine, space, sports, multi-agent, flooded roads and other water hazards) in MuJoCo or NVIDIA Isaac Sim from a description, or recreate a real scene from the user's photos/videos. Chooses the backend, confirms the spec with the user, sources 3D models from Poly Pizza (polypizza MCP) with procedural fallbacks, builds a tested scene + Gym-style env, and smoke-tests rendering, visuals and physics. Use whenever the user asks to create, generate, build or set up a simulation environment, sim scene, virtual world, RL/robot environment or digital twin.
 ---
 
 # Sim Env Builder
@@ -32,6 +32,10 @@ Isaac Sim needs an NVIDIA RTX GPU on Linux/Windows. MuJoCo runs anywhere.
 
 ## Phase 2 - Confirm with the user BEFORE building (reference/confirmation.md)
 
+0. Photos or videos from the user (attached, or a folder/file they name)? They are the spec: read
+   reference/reference_media.md, run `$PY -m simkit.reference extract <media> --out <env>/reference/frames`,
+   LOOK at `<env>/reference/sheet.jpg` and a few frames, and put a "From your media" block in the
+   brief (layout sketch in metres, objects with counts, the camera vantage, approximations).
 1. First do a quick asset scan so the brief is grounded: one `find_assets` call (polypizza MCP)
    listing every object role, 1-3 queries each.
 2. Send ONE short brief (template in reference/confirmation.md): backend + why, what will be in the
@@ -73,7 +77,10 @@ cp SKILL_DIR/templates/build_env.py SKILL_DIR/templates/env.py SKILL_DIR/templat
   `simkit.assets.glb_to_mujoco(glb, env, name, target={"height": m}, yaw_deg=..)` for Poly Pizza
   models (real-world size, Z-up, per-colour parts, box/hull/parts collision), `simkit.procedural`
   for fallbacks and terrain, `simkit.robots` for tested robots (quadrotor, car, diff_drive, arm
-  + gripper, quadruped) and their controllers.
+  + gripper, quadruped) and their controllers, `simkit.flood` for water on land (flooded streets,
+  fords, puddles, manhole fountains, storm look; reference/water.md).
+- Recreating media: `cam_reference` at the media's viewpoint + `reference/match.json`; iterate on
+  `smoke/reference_compare.png` (camera first, then layout) until the big things line up.
 - Real-world scale is mandatory (reference/assets.md size table). Things rest on their support.
 - Every object class the user named must be clearly visible at a readable size in the overview
   (a "rocky trail" needs rocks you can see, not 7 cm specks; "rough terrain" needs bumps visible
@@ -143,7 +150,8 @@ cd <env> && $PY -m simkit.smoke scene.xml --out smoke --controller controller.py
    plus your task checks.
 3. Visual check - YOU must open and look at `smoke/contact_sheet.png`, `smoke/filmstrip.png`,
    `smoke/collision_sheet.png` and the closeups in `smoke/renders/` (Read tool), then fill the
-   checklist into `smoke/visual_check.md` with concrete observations.
+   checklist into `smoke/visual_check.md` with concrete observations. With reference media, also
+   `smoke/reference_compare.png` (item 10: every visible mismatch with the media).
 Fix every FAIL. Investigate every WARN (fix it, or explain in README why it is expected).
 Re-build and re-run until the verdict is PASS / PASS_WITH_WARNINGS-explained AND the visual
 check is honestly all "yes". Expect 2-3 iterations; the first render is rarely right.
@@ -183,6 +191,7 @@ interrupted session still leaves a report; the final message is its last version
            physics_report.json render_report.json smoke_report.json env_manifest.json
            SMOKE.md visual_check.md)
   isaac/  (only for Isaac: scene.usda, isaac_smoke.py, README section)
+  reference/  (only with user media: frames/, sheet.jpg, match.json)
 ```
 
 ## Hard-won rules (each one has broken a real build)
