@@ -36,8 +36,8 @@ def _texture_png(model, tex_id: int) -> str | None:
         adr = int(model.tex_adr[tex_id])
         arr = np.asarray(model.tex_data[adr: adr + w * h * c], np.uint8).reshape(h, w, c)
         im = Image.fromarray(arr[..., :3] if c >= 3 else arr[..., 0])
-        if max(w, h) > 512:
-            im.thumbnail((512, 512))
+        if max(w, h) > 1024:  # non-tiling maps (flood water) need the detail; tiles are small anyway
+            im.thumbnail((1024, 1024))
         buf = io.BytesIO()
         im.save(buf, format="PNG")
         return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
@@ -89,6 +89,12 @@ def export_scene(model) -> dict:
                 fa, fn = model.mesh_faceadr[mid], model.mesh_facenum[mid]
                 meshes[mid] = {"vert": _b64(model.mesh_vert[va:va + vn], np.float32),
                                "face": _b64(model.mesh_face[fa:fa + fn], np.int32), "nv": int(vn), "nf": int(fn)}
+                ta, tn = int(model.mesh_texcoordadr[mid]), int(model.mesh_texcoordnum[mid])
+                if ta >= 0 and tn > 0:  # textured mesh (e.g. flood water): uv per face corner, in face order
+                    ftc = np.asarray(model.mesh_facetexcoord[fa:fa + fn], np.int64).reshape(-1)
+                    uv = np.array(model.mesh_texcoord[ta:ta + tn], np.float32)[ftc]
+                    uv[:, 1] = 1.0 - uv[:, 1]  # MuJoCo: v=0 is the image's first row; three.js (flipY): its last
+                    meshes[mid]["uv"] = _b64(uv, np.float32)
         if t == "hfield":
             hid = int(model.geom_dataid[g])
             item["hfield"] = hid
@@ -302,6 +308,9 @@ class SimSession:
         self.model.vis.global_.offheight = max(self.model.vis.global_.offheight, height)
         with self.lock:
             r = mujoco.Renderer(self.model, height, width)
+            i = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_NUMERIC, "simkit_fog")
+            if i >= 0 and self.model.numeric_data[self.model.numeric_adr[i]] > 0:
+                r.scene.flags[mujoco.mjtRndFlag.mjRND_FOG] = 1
             try:
                 r.update_scene(self.data, camera=camera)
                 img = r.render()

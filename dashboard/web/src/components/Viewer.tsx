@@ -35,6 +35,7 @@ function buildGeometry(g: any, sc: Scene, cache: Map<string, THREE.BufferGeometr
         geo.setAttribute("position", new THREE.BufferAttribute(b64ToArray(m.vert, Float32Array), 3));
         geo.setIndex(new THREE.BufferAttribute(new Uint32Array(b64ToArray(m.face, Int32Array).buffer), 1));
         const ni = geo.toNonIndexed();
+        if (m.uv) ni.setAttribute("uv", new THREE.BufferAttribute(b64ToArray(m.uv, Float32Array), 2));
         ni.computeVertexNormals();
         cache.set(key, ni);
       }
